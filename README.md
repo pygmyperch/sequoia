@@ -1,6 +1,6 @@
 # sequoia
 Pedigree inference based on SNP data.
 
-Please note that version 0.1 may still contain bugs, and does not yet supply code to simulate data.
+Please note that version 0.2 may still contain a few bugs regarding sibship clustering, but parentage assignment appears all OK.
 
-R vignette is not yet available. 
+An R function to replace dummy parents with observation-based parents will be included in the next update.
