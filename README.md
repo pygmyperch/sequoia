@@ -5,7 +5,7 @@ Sequoia provides a method to reconstruct multi-generational pedigrees based on S
 
 If devtools::install_github("jiscah/sequoia") does not work, the following might: download the zip, install the package from the zip file using 
 install.packages("E:/Sequoia/test/sequoia_0.3.zip", repos=NULL, type="binary")
-, and if necessary rename the folder in R\library from `sequoia-master' to `sequoia'.
+, and if necessary rename the folder in R\library from `sequoia-master` to `sequoia`.
 
 For further information, please contact  jisca.huisman@gmail.com
 
