@@ -10,7 +10,7 @@ install.packages("E:/Sequoia/test/sequoia_0.3.zip", repos=NULL, type="binary")
 For further information, please contact  jisca.huisman@gmail.com
 
 
-# A quick useage example with simulated data  
+## A quick useage example with simulated data  
 For details, see the R vignette and ?sequoia
 
 setwd("E:/Sequoia/test")  
