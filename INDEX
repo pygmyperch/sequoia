@@ -1,7 +1,6 @@
 %ina%                   Value Matching
 DyadCompare             Compare dyads
 FacToNum                Convert factor to numeric
-GetDumstr               get dummy prefixes from Specs file
 PedCompare              Compare two Pedigrees
 ReadSpecs               Read specs file
 ReadTable               Data input

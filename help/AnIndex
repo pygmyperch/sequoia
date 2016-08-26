@@ -2,7 +2,6 @@
 DyadCompare	DyadCompare
 eqv	eqv
 FacToNum	FacToNum
-GetDumstr	GetDumstr
 make_ageprior	make_ageprior
 pasteD	pasteD
 PedCompare	PedCompare

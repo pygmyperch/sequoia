@@ -1,17 +1,17 @@
 Package: sequoia
 Type: Package
 Title: Pedigree inference from SNPs
-Version: 0.2
+Version: 0.3
 Date: 2016-04-27
 Authors@R: person("Jisca", "Huisman", email = "jisca.huisman@gmail.com",
     role = c("aut", "cre"))
-Description: Fast pedigree inference from incomplete data on hundreds of
-    diallelic markers, including parentage assignment and sibship clustering.
+Description: Fast multi-generational pedigree inference from incomplete data on
+  hundreds of SNPs, including parentage assignment and sibship clustering.
 License: GPL-2
 LazyData: TRUE
 Imports: plyr (>= 1.8.0)
 RoxygenNote: 5.0.1
 Author: Jisca Huisman [aut, cre]
 Maintainer: Jisca Huisman <jisca.huisman@gmail.com>
-Built: R 3.2.5; x86_64-w64-mingw32; 2016-04-29 10:41:06 UTC; windows
+Built: R 3.3.1; x86_64-w64-mingw32; 2016-08-26 14:08:06 UTC; windows
 Archs: i386, x64
