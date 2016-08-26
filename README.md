@@ -10,21 +10,21 @@ install.packages("E:/Sequoia/test/sequoia_0.3.zip", repos=NULL, type="binary")
 For further information, please contact  jisca.huisman@gmail.com
 
 
-# A quick useage example with simulated data
+# A quick useage example with simulated data  
 For details, see the R vignette and ?sequoia
 
-setwd("E:/Sequoia/test")
-library(sequoia)
+setwd("E:/Sequoia/test")  
+library(sequoia)  
 
-copy the example pedigree and associated life history file to the working directory:
-file.copy(system.file("Ped_HSg5.txt", package="sequoia"), getwd())
-file.copy(system.file("LH_HSg5.txt", package="sequoia"), getwd())
+copy the example pedigree and associated life history file to the working directory:  
+file.copy(system.file("Ped_HSg5.txt", package="sequoia"), getwd())  
+file.copy(system.file("LH_HSg5.txt", package="sequoia"), getwd())  
 
-simulate genotype data for 200 SNPs, and use otherwise default values:
+simulate genotype data for 200 SNPs, and use otherwise default values:  
 SimGeno(PedFile = "Ped_HSg5.txt", nSnp = 200)
 
-Run Sequoia:
+Run Sequoia:  
 sequoia(GenoFile = "SimGeno.txt", LifeHistFile = "LH_HSg5.txt")
 
-Compare the assigned parents to those in the true pedigree:
+Compare the assigned parents to those in the true pedigree:  
 PedCompare(PedIN = "Ped_HSg5.txt", PedOUT = "PedSeq.txt")
