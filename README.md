@@ -9,7 +9,7 @@ For further information, questions or comments, please contact me at jisca.huism
 
 
 ## A quick useage example with simulated data  
-For details, see the R vignette and ?sequoia
+For details, see the R vignette (`browseVignettes("sequoia")`) and `?sequoia`
 
 `setwd("E:/Sequoia/test")`  
 `library(sequoia)`  
