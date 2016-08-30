@@ -11,7 +11,9 @@ License: GPL-2
 LazyData: TRUE
 Imports: plyr (>= 1.8.0)
 RoxygenNote: 5.0.1
+Suggests: knitr, rmarkdown
+VignetteBuilder: knitr
 Author: Jisca Huisman [aut, cre]
 Maintainer: Jisca Huisman <jisca.huisman@gmail.com>
-Built: R 3.3.1; x86_64-w64-mingw32; 2016-08-26 14:08:06 UTC; windows
+Built: R 3.3.1; x86_64-w64-mingw32; 2016-08-30 15:35:40 UTC; windows
 Archs: i386, x64
