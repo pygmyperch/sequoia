@@ -3,7 +3,7 @@ Sequoia provides a method to reconstruct multi-generational pedigrees based on S
 
 The package has been submitted to CRAN and should hopefully be available there soon.
 
-Provided you have a Fortran compiler on your computer, you can install the package using
+Provided you have a Fortran compiler on your computer, you can install the package using  
 `library(devtools)  
 install_github("JiscaH/sequoia")`
 
