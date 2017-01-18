@@ -5,7 +5,11 @@ The package has been submitted to CRAN and should hopefully be available there s
 
 Provided you have a Fortran compiler on your computer, you can install the package using  
 `library(devtools)`    
-`install_github("JiscaH/sequoia")`
+`install_github("JiscaH/sequoia")`  
+restart R, and then load the package using  
+`library(sequoia)`  
+and see the help file  
+`?sequoia`  
 
 Alternatively, a binary for the package for 64-bit windows with R 3.3.1 is available in https://github.com/JiscaH/Sequoia-source-code, 
 as well as the Fortran source code. 
