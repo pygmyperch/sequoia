@@ -1,17 +1,16 @@
 # sequoia
-Sequoia provides a method to reconstruct multi-generational pedigrees based on SNP data, as described in the manuscript `Pedigree reconstruction using SNP data: parentage assignment, sibship clustering, and beyond`. The bulk of the algorithm is written in Fortran, to minimise computation times.
+Sequoia provides a method to reconstruct multi-generational pedigrees based on SNP data, as described in the manuscript `Pedigree reconstruction using SNP data: parentage assignment, sibship clustering, and beyond` ( http://onlinelibrary.wiley.com/doi/10.1111/1755-0998.12665/full ). The bulk of the algorithm is written in Fortran, to minimise computation times.
 
-The package has been submitted to CRAN and should hopefully be available there soon.
+The package is available from CRAN, and can be installed using
+`install.packages("sequoia")`
 
-Provided you have a Fortran compiler on your computer, you can install the package using  
-`library(devtools)`    
-`install_github("JiscaH/sequoia")`  
-restart R, and then load the package using  
-`library(sequoia)`  
-and see the help file  
-`?sequoia`  
+The version here may sometimes be newer, as it takes about a week for updates to turn into compiled packages on all CRAN servers. If you have a Fortran compiler on your computer, download the .tar.gz source, else if you have a windows machine and the current version of R, the .zip binary might work. You can install these using
+`install.packages("C:/file/to/path/sequoia_0.9.3.zip",  repos = NULL)`
+followed by turning R off & on. 
 
-Alternatively, a binary for the package for 64-bit windows with R 3.3.1 is available in https://github.com/JiscaH/Sequoia-source-code, 
-as well as the Fortran source code. 
+You can access detailed instructions on how to use the package with the command
+`vignette("sequoia")`
+
+Note that the Fortran stand-alone version is not as up to date as this R version!
 
 For further information, questions or comments, please contact me at jisca.huisman@gmail.com
