@@ -1,0 +1,1 @@
+These are the windows-compiled binaries (.zip) and source files (.tar.gz) from past sequoia versions that have been available CRAN. The same source files are also available at https://cran.r-project.org/src/contrib/Archive/sequoia/ , but CRAN does not archive compiled binaries.
