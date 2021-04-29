@@ -33,7 +33,7 @@ library(sequoia)
 ```
 
 ## Get started
-*For a succinct version of this example where you can copy/paste all code in one go, see the [main vignette](./vignettes_blogdown/quick-start-examples.html)*
+*For a succinct version of this example where you can copy/paste all code in one go, see the main vignette*
 
 In this example genotypes are simulated from a fictional pedigree, which together with the associated life history data is provided with the package. This pedigree consists of 5 discrete generations with interconnected half-sib clusters (Pedigree II in the paper[^1]).
 

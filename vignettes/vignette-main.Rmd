@@ -4,13 +4,10 @@ subtitle: "Reconstruction of multi-generational pedigrees from SNP data"
 author: "Jisca Huisman ( jisca.huisman @ gmail.com )"
 date: "26 April 2021"
 output:
-  bookdown::pdf_book:
-    extra_dependencies:
-    - amsmath
-    - amssymb
-    - graphicx
-    - subcaption
-    keep_tex: true
+  bookdown::html_document2:
+    base_format: rmarkdown::html_vignette
+    toc: true
+    toc_depth: 3
   bookdown::gitbook: 
     config:
       toc:
@@ -20,10 +17,13 @@ output:
         twitter: yes
         github: yes
     split_by: none
-  bookdown::html_document2:
-    base_format: rmarkdown::html_vignette
-    toc: true
-    toc_depth: 3
+  bookdown::pdf_book:
+    extra_dependencies:
+    - amsmath
+    - amssymb
+    - graphicx
+    - subcaption
+    keep_tex: true
 config:
   toc: yes
   toc_depth: 3
@@ -34,8 +34,8 @@ linkcolor: blue
 vignette: >
   %\VignetteIndexEntry{Sequoia User Guide}
   %\VignetteEncoding{UTF-8}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteKeyword{pedigree}
+  %\VignetteEngine{knitr::rmarkdown}
 ---
 
 ```{r setup, include=FALSE}
@@ -787,7 +787,7 @@ Parameter settings and input data from one `sequoia()` run can be re-used in a s
 
 
 The parameter values used as arguments when calling `sequoia()` are returned in the list element `Specs`. This 1-row dataframe may be edited (with caution!) before re-use. Other elements of the `sequoia()` output list (`SeqList`) that are used as input by one or more functions are `LifeHist`, `AgePriors`, and `PedigreePar`/`Pedigree`. Details on which elements are used is provided in the help file of each function. 
-`SeqList$Specs` nearly always take precedent over similarly-named input parameters, with exception of e.g. `sequoia()`'s `Module` (`MaxSibIter`) argument. The other `SeqList` elements generally also take precedent, but not always with a warning. If you wish to use a mixture of `SeqList` elements and 'new' data, it is safest to provide only the minimal subset of `SeqList`, and specify the other data as separate input (or as 'fake' `SeqList` elements).
+`SeqList[["Specs"]]` nearly always take precedent over similarly-named input parameters, with exception of e.g. `sequoia()`'s `Module` (`MaxSibIter`) argument. The other `SeqList` elements generally also take precedent, but not always with a warning. If you wish to use a mixture of `SeqList` elements and 'new' data, it is safest to provide only the minimal subset of `SeqList`, and specify the other data as separate input (or as 'fake' `SeqList` elements).
 
 For example, if you wish to change the dummy prefix, but do not want to re-run parentage assignment:
 ```{r }
@@ -811,7 +811,7 @@ To speed up iterative quality control, it is possible to run `sequoia()` only up
 There are three possible intermediate stopping points, plus the final end point, each named after the last '`Module`' that is run:
 
   1. **`'pre'`**: Input check  
-  check that the genotype data, life history data and input parameters are in a valid format, create `$Specs` element of output list
+  check that the genotype data, life history data and input parameters are in a valid format, create `'Specs'` element of output list
   2. **`'dup'`**: check for duplicates  
   Check for (nearly) identical genotypes, and for duplicated IDs in the genotype and life history data
   3. **`'par'`**: parentage assignment  
@@ -1182,7 +1182,7 @@ A genetically identified parent will be assigned when it matches a candidate par
 
 In absence of a pedigree prior, only instances of selfing will be assigned. 
 
-The pedigree 'prior' can only be used during parentage assignment, by specifying `SeqList$PedigreePar` as input *and* setting `Module='par'` (`MaxSibIter=0`):
+The pedigree 'prior' can only be used during parentage assignment, by specifying `SeqList[["PedigreePar"]]` as input *and* setting `Module='par'` (`MaxSibIter=0`):
 ```{r }
 cand.dams <- read.table("Candidate_dams.txt", header=TRUE,
                         stringsAsFactors=FALSE)
@@ -1210,7 +1210,7 @@ Often it is irrelevant whether the parent was the maternal or paternal parent, a
 ## Hermaphrodite dummies
 Whether half-siblings share a dummy dam or a dummy sire is arbitrary. If one or more individuals in a sibship are the product of selfing, the maternal and paternal halves will be linked, and additional half-siblings will be arbitrarily assigned to either half. Dummy individuals which occur as both dam and sire get dummy prefix `'H'`, an alternative 3rd `DummyPrefix` can be specified in (most?) relevant functions.
 
-In `SeqList$DummyIDs`, the offspring-as-dam and offspring-as-sire are shown separately, with the same id ('H0xxx') and Sex=1 vs Sex=2 respectively. Selfed offspring will occur in both rows. Estimated birth years and other aspects may differ somewhat between the maternal and paternal halves, as during pedigree reconstruction they are (currently?) only linked in some aspects but not others. 
+In `SeqList[["DummyIDs"]]`, the offspring-as-dam and offspring-as-sire are shown separately, with the same id ('H0xxx') and Sex=1 vs Sex=2 respectively. Selfed offspring will occur in both rows. Estimated birth years and other aspects may differ somewhat between the maternal and paternal halves, as during pedigree reconstruction they are (currently?) only linked in some aspects but not others. 
 
 
 ## Assignment errors
