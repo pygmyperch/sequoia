@@ -37,7 +37,7 @@ head(SeqOUT$Pedigree)   #  the reconstructed pedigree
 ```
 
 Detailed instructions on how to use the package are available in the vignette (vignettes/vignette-main.pdf), available in R
-via `vignette("sequoia")`. 
+via `vignette("sequoia")` or `??sequoia` (that's 2 question marks).
 
 
 ## Versions
