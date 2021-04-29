@@ -38,8 +38,10 @@ with e.g. the same dummy father will still be counted as paternal halfsibs.
 No attempt is made to match dummies in one pedigree to individuals in the
 other pedigree; for that use \code{\link{PedCompare}}.}
 
-\item{DumPrefix}{character vector of length 2 with the dummy prefixes in
-\code{Ped1} and/or \code{Ped2}.}
+\item{DumPrefix}{character vector with the prefixes identifying dummy
+individuals. Use 'F0' ('M0') to avoid matching to regular individuals with
+IDs starting with 'F' ('M'), provided \code{Ped2} has fewer than 999 dummy
+females (males).}
 
 \item{Return}{return a matrix with \code{Counts} or a \code{Summary} of the
 number of identical relationships and mismatches per relationship, or

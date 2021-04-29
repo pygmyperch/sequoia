@@ -33,8 +33,10 @@
 #'   with e.g. the same dummy father will still be counted as paternal halfsibs.
 #'   No attempt is made to match dummies in one pedigree to individuals in the
 #'   other pedigree; for that use \code{\link{PedCompare}}.
-#' @param DumPrefix character vector of length 2 with the dummy prefixes in
-#'   \code{Ped1} and/or \code{Ped2}.
+#' @param  DumPrefix  character vector with the prefixes identifying dummy
+#'   individuals. Use 'F0' ('M0') to avoid matching to regular individuals with
+#'   IDs starting with 'F' ('M'), provided \code{Ped2} has fewer than 999 dummy
+#'   females (males).
 #' @param Return  return a matrix with \code{Counts} or a \code{Summary} of the
 #'   number of identical relationships and mismatches per relationship, or
 #'   detailed results as a 2xNxN \code{Array} or as a \code{Dataframe}.
@@ -269,7 +271,10 @@ ComparePairs <- function(Ped1 = NULL,
 	# delete dummies (doing this earlier may cause trouble with 2-generations-back GetRelM)
 	if (ExcludeDummies) {
 	  DPnc <- nchar(DumPrefix)
-	  Dummies <- substr(IDs,1,DPnc[1])==DumPrefix[1] | substr(IDs,1,DPnc[2])==DumPrefix[2]
+    Dummies <- rep(FALSE, length(IDs))
+    for (x in seq_along(DumPrefix)) {
+      Dummies <- ifelse(Dummies, Dummies, substr(IDs,1,DPnc[x]) == DumPrefix[x])
+    }
 	  if (sum(Dummies)>0) {
 	    RCA <- RCA[, !Dummies, !Dummies]
 	    IDs <- IDs[!Dummies]

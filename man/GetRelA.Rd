@@ -21,10 +21,10 @@ a 3D array indicating if the pair has the specified relationship (1)
 or not (0). The various relationship considered are in the 3rd dimension:
  \item{M}{}
  \item{P}{}
- \item{FS}{full siblings, including double cross-sibs}
+ \item{FS}{full siblings, including double 'other half sibs'}
  \item{MS}{}
  \item{PS}{}
- \item{XS}{cross-sibs: mother of A is father of B, or vv}
+ \item{XS}{other sibs: mother of A is father of B, or vv}
 etc.
 }
 \description{

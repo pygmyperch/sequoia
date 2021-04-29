@@ -1,7 +1,7 @@
 #' @title Count Generations
 #'
 #' @description For each individual in a pedigree, count the number of
-#'   generations since the most distant pedigree founder.
+#'   generations since its most distant pedigree founder.
 #'
 #' @param Ped  dataframe, pedigree with the first three columns being id - dam -
 #'   sire. Column names are ignored, as are additional columns.

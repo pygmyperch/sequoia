@@ -2,17 +2,15 @@
 title: "Sequoia User Guide"
 subtitle: "Reconstruction of multi-generational pedigrees from SNP data"
 author: "Jisca Huisman ( jisca.huisman @ gmail.com )"
-date: "14 Feb 2021"
+date: "26 April 2021"
 output:
   bookdown::pdf_book:
     extra_dependencies:
     - amsmath
     - amssymb
     - graphicx
-  bookdown::html_document2:
-    base_format: rmarkdown::html_vignette
-    toc: true
-    toc_depth: 3
+    - subcaption
+    keep_tex: true
   bookdown::gitbook: 
     config:
       toc:
@@ -22,6 +20,10 @@ output:
         twitter: yes
         github: yes
     split_by: none
+  bookdown::html_document2:
+    base_format: rmarkdown::html_vignette
+    toc: true
+    toc_depth: 3
 config:
   toc: yes
   toc_depth: 3
@@ -33,8 +35,8 @@ vignette: >
   %\VignetteIndexEntry{Sequoia User Guide}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteKeyword{pedigree}
 ---
-
 
 ```{r setup, include=FALSE}
 library(knitr)
@@ -44,6 +46,8 @@ knitr::opts_chunk$set(echo = TRUE, eval=FALSE,
                       fig.height=4, fig.width=6, fig.pos="htb!")
 ```
 
+
+\newpage
 
 
 # Quick-start examples
@@ -86,7 +90,7 @@ save(SeqOUT, Geno, OtherStuff, file="Sequoia_output_date.RData")
 writeSeq(SeqList = SeqOUT, GenoM = Geno, folder = "Sequoia-OUT")
 ```
 
-For a detailed walk-through of this example, see the [worked examples](./Worked_examples.html)
+For a detailed walk-through of this example, see [here](quick_start_example1.html)
 
 ## Real Data
 First get a subset of SNPs which are as informative (high MAF, high call rate), reliable (low error rate), and independent (low LD) as possible. Ideally around 400 -- 700 for full pedigree reconstruction; fewer are necessary for only parentage assignment, while more may be necessary with very high levels of polygamy or inbreeding. In addition you need a dataframe with the sex and birth/hatching year of as many individuals as possible, in arbitrary order. 
@@ -100,17 +104,14 @@ CheckGeno(Geno)
 Geno <- GenoConvert(InFile = "mydata.ped", InFormat="ped")
 #
 # read in lifehistory data: ID-Sex-birthyear, column names ignored
-# optional: minimum & maximum possible birth year, when not exactly known
 LH <- read.table("LifeHistoryData.txt", header=T)
 #
 # duplicate check & parentage assignment (takes few minutes)
-# (maximum number of sibship-clustering iterations = 0)
 ParOUT <- sequoia(GenoM = Geno,  LifeHistData = LH_HSg5,  Err=0.005,
                   Module="par", quiet = FALSE, Plot = TRUE)
 # (NOTE: from version 2.1 onward, 'Module' replaces 'MaxSibIter')
 #
-# inspect duplicates (intentional or accidental)
-ParOUT$DupGenotype
+ParOUT$DupGenotype  # inspect duplicates (intentional or accidental)
 #
 # compare assigned parents to field pedigree (check column order!)
 FieldPed <- read.table("FieldPed.txt", header=T)
@@ -134,14 +135,12 @@ Geno2 <- Geno2[Indiv.Mis < 0.2, ]
 #
 # ..........................................................
 # run full pedigree reconstruction (may take up to a few hours)
-# including re-run of parentage assignment
 SeqOUT <- sequoia(GenoM = Geno2,
                   LifeHistData = LH_HSg5,
                   Module = "ped", 
                   Err = 0.001)
 #
-# inspect assigned parents, proportion dummy parents, etc.
-SummarySeq(SeqOUT)
+SummarySeq(SeqOUT)  # inspect assigned parents, prop. dummy parents, etc.
 #
 # check full sibs, half sibs etc.
 Pairwise <- ComparePairs(SeqOUT$Pedigree, patmat = TRUE)
@@ -185,49 +184,84 @@ The maximum number of Mendelian mismatches, and mismatches between potential dup
 but can be changed via parameters `Err` and `ErrFlavour`. 
 
 
+## Likelihoods
+Assignments are based on the likelihods for all different possible relationships between a pair, calculated conditional on all assignments made up onto that point. If the focal relationship is more likely than all alternatives (by a margin `Tassign`), the assignment is made. 
+
+The relationships are condensed into seven categories (Table \@ref(tab:rel7)). Under the default settings (`Complx='full'`), these also include their combinations (section [Unusual relationships](#sec:WeirdRels)), e.g. a pair may be both paternal half-siblings and maternal aunt/niece if they were produced by a mother-daughter pair mating with the same male. 
+
+```{r rel7, echo=FALSE, eval=TRUE, results="asis"}
+knitr::kable(cbind(" "= c("PO", "FS", "HS", "GP", "FA", "HA", "U"),
+                   Relationship = c("Parent - offspring",
+                     "Full siblings",
+                     "Half siblings",
+                     "Grandparental",
+                     "Full avuncular (aunt/uncle)",
+                     "Half avuncular (+ other 3rd degree)",
+                     "Unrelated")),
+             caption = "Main relationships considered", escape=FALSE,
+             booktabs=TRUE, position="!th")
+```
+
+To reduce computational time, these likelihoods are only calculated after filtering pairs based on the number of [Mendelian errors](#sec:MendelErrors), their [age difference](#sec:BY-AP), and a quick calculation of LLR(focal / unrelated) without conditioning on any earlier assigned relatives (must pass `Tfilter`).  
+
+For any pair of genotyped individuals, these seven likelihoods can be calculated with `CalcPairLL()`.   
+
+
+
 ## Genotyping errors {#sec:GenoErrors}
 
 ### Effect 
-A higher rate of genotyping errors leads to more false negatives and more false positives during pedigree reconstruction, as illustrated in Figure \@ref(fig:ErrSimSeq). The magnitude of the effect is unpredictable: One wrong assignment due to a few genotyping errors in a key individual may have numerous knock-on effects, while dozens of genotyping errors in 'dead end' individuals may have no consequences at all. 
+A higher rate of genotyping errors leads to more false negatives and more false positives during pedigree reconstruction, as illustrated in Figure \@ref(fig:ErrSimSeq). The magnitude of the effect varies: One wrong assignment due to a few genotyping errors in a key individual may have numerous knock-on effects, while dozens of genotyping errors in 'dead end' individuals may have no consequences at all. 
 
-The simulations (`SimGeno()`) assume amongst others that genotyping errors are independent from each other and from a sample's call rate, and are likely give a too optimistic picture.
+The simulations (`SimGeno()`) assume amongst others that genotyping errors are independent from each other and from a sample's call rate, and likely give a more optimistic picture than real data.
 
 
 ### Assumed genotyping error rate `Err`
-Assignment success is reduced when the presumed genotyping error rate `Err` differs greatly from the actual genotyping error rate. Among others, when `Err` is much lower than the actual genotyping error rate (Figure \@ref(fig:ErrSimSeq): yellow symbols at right-hand side), some true parent-offspring pairs will be assigned as full siblings. In contrast, when `Err` is much too high (Figure \@ref(fig:ErrSimSeq): red symbols at keft-hand side) some true full siblings will be classified as parent-offspring. The consequences of being off by a factor 2 are limited, but being off by a factor 10 or even 100 may affect assignment considerably.
+The reduced performance at high genotyping error rates can be somewhat mitigated by running `sequoia()` with a roughly correct presumed genotyping error rate `Err` (Figure \@ref(fig:ErrSimSeq): compare red vs yellow symbols at an error rate of 1-2%). 
 
-Computational time tends to increases with both simulated and assumed genotyping error rate, as the time-saving filtering steps become less effective. 
+Among others, when `Err` is much lower than the actual genotyping error rate, some true parent-offspring pairs will be assigned as full siblings. On the other hand, when `Err` is much higher than the actual genotyping error rate some true full siblings may be classified as parent-offspring, potentially leading to various 'secondary' errors. This trade-off can be explored using `CalcPairLL()` if some known parent-offspring and full sibling pairs are available. 
 
 <!-- work-around for issue with underscore in caption -->  
 (ref:caption-err) High simulated genotyping error rate (x-axes) increases both false negatives (top) and false positives (bottom). A roughly correct presumed error rate (colours) improves performance. Results from pedigree `Ped_HSg5` with 200 SNPs, call rate 0.99, 40% of parents non-genotyped.  Diamonds: means across 10 replicates.
 
-```{r ErrSimSeq, echo=FALSE, eval=TRUE, fig.cap="(ref:caption-err)", out.width="65%"} 
- 
+```{r ErrSimSeq, echo=FALSE, eval=TRUE, fig.cap="(ref:caption-err)", out.width="80%"} 
 knitr::include_graphics("Errs-effect.png")
 ```
 
-Therefore, do **consider carefully which value to use for `Err`**, and explore if and how results change when you vary this parameter. The default assumed genotyping error rate of 0.01% is based on data from a SNP array after stringent quality control; in many cases the error rate will be (much) higher [^a]. When exploring different values, possibly in combination with non-default values for the thresholds `Tfilter` and `Tassign`, do keep in mind the relative consequences of potential misassignments (false positives) versus non-assignments (false negatives) during later use of the pedigree.
+
+**NOTE** that the default assumed genotyping error rate of 0.01% is based on data from a SNP array after stringent quality control; in many cases the genotyping error rate will be (much) higher [^a]. It is typically worthwhile to explore if and how results change when you vary this parameter, possibly in combination with non-default values for the thresholds `Tfilter` and `Tassign`. Do keep in mind the relative consequences of potential misassignments (false positives) versus non-assignments (false negatives) during later use of the pedigree.
 
 [^a]:  but changing the default value is likely to cause problems for people re-using old code.
 
 
-### Unsuitable for high genotyping error rates
-`sequoia` does not cope well with high rates of genotyping errors, as the sequential approach (see [Background](#sec:Background)) can lead to a cascading avalanche of assignment errors. If the rate is around 1\%, be cautious when interpreting the results and please use [`EstConf()`](#sec:EstConf) to estimate the assignment error. With even higher genotyping error rates, I would strongly suggest to use MCMC-based approaches, or other approaches more robust to poor genotyping quality. 
 
-Assignment of genotyped parents to genotyped offspring is fairly robust to low SNP number and high genotyping errors (left-most column in Figure \@ref(fig:ARER-cats)), while pedigree links involving a dummy individual are more prone to misassignment and non-assignment (columns 2-4 in Figure \@ref(fig:ARER-cats)). In these simulations, all SNPs are completely independent, call rate is high, and founders are unrelated; in real data the overall performance is probably lower but the patterns will be similar. 
+### Performance with high genotyping error rates
+`sequoia` does not cope well with high rates of genotyping errors, as the sequential approach (see [Background](#sec:Background)) can lead to a cascading avalanche of assignment errors. If the rate is around 1\%, be cautious when interpreting the results and please use [`EstConf()`](#sec:EstConf) to estimate the assignment error. With genotyping error rates above 5\% I would strongly suggest to use MCMC-based approaches, or other approaches more robust to poor genotyping quality. 
 
-
-(ref:caption-ARERcats) Non-assignment (top) and assignment errors (bottom) for a range of SNP numbers (x-axes) and simulated genotyping errors (colours). `sequoia` presumed error rates equal to simulated error rates. Results for a deer pedigree with overlapping generations and inbreeding; 40% of parents were presumed non-genotyped, call rate=0.99 for remainder.", out.width="90%
-
-```{r ARER-cats, echo=FALSE, eval=TRUE, fig.cap="(ref:caption-ARERcats)"} 
+```{r ARER-cats, echo=FALSE, eval=TRUE, fig.cap="(ref:caption-ARERcats)", out.width="100%"} 
 knitr::include_graphics("ARER-cats.png")
 ```
 
-<!-- TODO: ylabel: P looks like F --> 
+Assignment of genotyped parents to genotyped offspring is fairly robust to low SNP number and high genotyping errors (left-most column in Figure \@ref(fig:ARER-cats)), while pedigree links involving a dummy individual are more prone to mis-assignment and non-assignment (columns 2-4 in Figure \@ref(fig:ARER-cats)). In these simulations, all SNPs are completely independent, call rate is high, and founders are unrelated; in real data the overall performance is probably lower but the patterns will be similar. 
+
+
+(ref:caption-ARERcats) Non-assignment (top) and assignment errors (bottom) for a range of SNP numbers (x-axes) and simulated genotyping errors (colours). `sequoia` presumed error rates ('Err') set equal to simulated error rates. Results for a deer pedigree with overlapping generations and inbreeding; 40% of parents were presumed non-genotyped, call rate=0.99 for remainder.
+
+
+
+### Effect on runtime
+Computational time tends to increases with both simulated and assumed genotyping error rate, as the time-saving filtering steps become less effective (Figure \@ref(fig:Errs-time)).
+
+```{r Errs-time, echo=FALSE, eval=TRUE, fig.cap="Runtimes are shorter with lower genotyping error rates and more SNPs", out.width="35%", fig.show='hold', fig.pos="!th"} 
+knitr::include_graphics(c("Errs-time-HSg5.png", "Errs-time-deer.png"))
+```
 
 
 ### Error matrix
-Different genotyping methods are likely to have different error structures. Therefore, from version 2.0 sequoia allows fine-scale control over how potential genotyping errors are accounted for. An error matrix with the probability to observe genotype $G$ (columns), conditional on actual genotype $g$ (rows), can now be specified via parameter `ErrFlavour`. The current default (`version2.0`) is given in Table \@ref(tab:ErrM), and previous defaults are shown in the help file of `ErrToM()`. The slight differences between versions only have any consequences when the error rate is high ($>1%$). 
+Different genotyping methods are likely to have different error structures (Table \@ref(tab:ErrM)). Therefore, from version 2.0 sequoia allows fine-scale control over how potential genotyping errors are accounted for. An error matrix with the probability to observe genotype $G$ (columns), conditional on actual genotype $g$ (rows), can now be specified via parameter `ErrFlavour`. The current default (`version2.0`) is given in Table \@ref(tab:ErrM), and previous defaults are shown in the help file of `ErrToM()`. The slight differences between versions only have any consequences when the error rate is high ($>1%$). 
+
+During pedigree inference, the error rate is presumed equal across all SNPs. It is also assumed that none of the errors (or missingness) are due to heritable mutations.
+
 
 
 ```{r ErrM, echo=FALSE, eval=TRUE, results="asis"}
@@ -237,10 +271,10 @@ ErrM <- matrix(c("$(1-E/2)^2$", "$E\\times(1-E/2)$", "$(E/2)^2$",
                3,3, byrow=TRUE,
                dimnames=rep(list(c("aa","Aa","AA")), 2))
 knitr::kable(ErrM,
-             caption = "Probability of observed genotype (columns) conditional on actual genotype (rows) and per-locus error rate E", escape=FALSE, booktabs=TRUE)
+             caption = "Probability of observed genotype (columns) conditional on actual genotype (rows) and per-locus error rate E", escape=FALSE, booktabs=TRUE,
+             position="!hb")
 ```
 
-During pedigree inference, the error rate is presumed equal across all SNPs. It is also assumed that none of the errors (or missingness) are due to heritable mutations.
 
 
 ### Estimate
@@ -250,7 +284,10 @@ Function `SnpStats()` can estimate the genotyping error rate per SNP, conditiona
 ## Birth years \& Ageprior {#sec:BY-AP}
 Providing individual birth years will typically greatly improve the completeness and speed of pedigree reconstruction. Age data is used to subset the potential relationships between each pair, and is required to orientate parent--offspring pairs the right way around. Birth year information is not strictly required for every individual: parent-parent-offspring trios can be assigned even in absence of any age data, as long as the sex of either parent is known.
 
-`Birth year' should be interpreted loosely, as the time unit (week/month/year/decade/...) of birth/hatching/germination/... .
+'Birth year' should be interpreted loosely, as the time unit (week/month/year/decade/...) of birth/hatching/germination/... .
+
+For individuals (or 'mystery samples') with unknown birth years, the probability that they were born in year $y$ can be estimated using `CalcBYprobs()`. This relies on the (estimated) birth years of their parents and offspring, and the age distribution of parent-offspring pairs as specified in the `age prior`. 
+
 
 
 ### Definition \& interpretation
@@ -262,7 +299,7 @@ The value may vary from $0$ (impossible), to $1$ (just as likely), and typically
 
 For example, in datasets with only one or two ageclasses, it is worth contemplating whether or not avuncular relationships should be considered as alternatives to siblings. The behaviour can be changed by explicitly declaring generations as `Discrete` (avuncular cannot have age difference of 0), and/or by setting `MaxAgeParent`. 
 
-You can find extensive details about the ageprior [in this separate vignette](./introduction.html), including worked examples, mathematical framework, and full range of options.
+You can find extensive details about the ageprior [in this separate vignette](vignette-age.html), including worked examples, mathematical framework, and full range of options.
 
 
 ### Implementation
@@ -296,63 +333,23 @@ This information can be viewed in the `AgePriorExtra` element of the `sequoia()`
 [^x]: Up to sequoia v1.3 it was assumed that the ageprior for maternal and paternal full- and half- aunts and uncles was approximately similar, and approximately symmetrical around zero -- both these assumptions have been dropped from version 2.0.  --> 
 
 
-## Low assignment rate {#sec:lowAR}
-Pedigree reconstruction with `sequoia()` is primarily developed for situations were false positive assignments have more severe downstream consequences than false negatives, and is by design very conservative when making assignments. 
-
-There are four main causes for false negatives, which are not mutually exclusive:
-
-1. There is more than one type of relationship possible between the pair, which cannot be distinguished with certainty (details below);
-2. The relationship is clear (e.g. half siblings), but it is unclear whether they are maternal or paternal relatives;
-3. It is clear the pair are parent and offspring (or grandparent -- grand-offspring), but it is unclear which of the two is the (grand)parent, due to unknown birth year(s) and absence of a 'complementary' candidate parent;
-4. There is more than one plausible candidate (dummy) (grand)parents of one sex, all of which are more likely to be a parent than otherwise related. This includes the situation where true offspring are among the candidate parents due to unknown birth years. 
-
-
-Cause (1) may be due to having few, not-very-informative and/or high-error rate SNPs, making it hard to distinguish between parents and full siblings, or between full and half siblings. Lowering the assignment threshold `Tassign` may reduce this problem, but with imperfect genetic data some full siblings may 'look' (slightly) more like parents than like full siblings, resulting in erroneous assignments or false negatives via the 4th route. 
-
-Even with perfect genetic data, half-siblings, grandparent--grand-offspring and full avuncular pairs are genetically indistinguishable, unless both already have one parent assigned. Assignment of half-sibling pairs is only possible when grand-parental and avuncular relationships can be excluded based on the age-difference of the pair, or when both individuals already have a parent assigned. 
-
-Functions `GetMaybeRel()` and/or `CalcPairLL()` may help track down the main cause(s) for non-assignment. Many low LLRs (small differences between likelihoods) indicate too limited genetic information to tell the relationships apart, while many pairs indicated as '2nd' suggest it is not possible to tell the different 2nd degree relationships apart due to inconclusive age data and/or too few genotyped parents. 
-
-Adding an individual to a sibship cluster is 'easier' than assigning a pair of half-siblings. The larger the sibship is, the more obvious it becomes genetically whether the individual is related to all of the siblings or not, and, with overlapping generations, the stronger the age differences point toward half-sibling, full avuncular, or grandparent. 
-
-Moreover, maternal sibships help cluster paternal sibships, and vice versa. For example, individuals A and B are assigned as paternal half-siblings, because both each first had a genotyped mother assigned. Individual C is added, as it is related to both A and B and age-wise cannot be avuncular or grandparent. Individual D was similarly added to a different paternal sibship. If C and D are second degree relatives, they must be maternal relatives, and because both already have a (dummy) parent assigned the likelihood can tell us whether they are half-siblings, avuncular, or grandparent -- grand-offspring. 
-
-But in the algorithm used, for sibship clusters to exist first sibling pairs must be assigned. This may not happen at all, or only very sporadically, when e.g. almost all birth years are unknown, or when no candidate parents were genotyped and maternal and paternal half-siblings cannot be distinguished based on age difference. Then these cascading assignments never kick off, and assignment rate can be extremely low. For such situations, different programs with MCMC based approaches are much more suitable. 
-
 
 
 ## Parent LLR 
-When parentage assignment or pedigree reconstruction is completed (when the total likelihood has asymptoted) for each assigned parent-offspring pair a log10-likelihood ratio (LLR) is calculated. This is 
+When parentage assignment or pedigree reconstruction is completed (when the total likelihood has asymptoted), a log10-likelihood ratio (LLR) is calculated for each assigned parent-offspring pair. This is 
 
 >**The ratio between the likelihood of being parent and offspring, versus the next-most-likely relationship between them, conditional on all other relationships in the pedigree.**
 
 This differs from for example Cervus [@marshall98], which returns the ratio between the likelihood that the assigned parent is the parent, versus that the next most likely candidate is the parent.
 
-
-```{r rel7, echo=FALSE, eval=TRUE, results="asis"}
-knitr::kable(cbind(" "= c("PO", "FS", "HS", "GP", "FA", "HA", "U"),
-                   Relationship = c("Parent - offspring",
-                     "Full siblings",
-                     "Half siblings",
-                     "Grandparental",
-                     "Full avuncular (aunt/uncle)",
-                     "Half avuncular (+ other 3rd degree)",
-                     "Unrelated")),
-             caption = "Main relationships considered", escape=FALSE,
-             booktabs=TRUE, position="!b")
-```
-
-
-The 'next-most-likely relationship' is one of seven different relationships (Table \@ref(tab:rel7)). Under the default settings, this includes their combinations, e.g. a pair may be both paternal half-siblings and maternal aunt/niece (section [Unusual relationships](#sec:WeirdRels)). To reduce computational time, these seven likelihoods are only calculated after filtering pairs based on the number of [Mendelian errors](#sec:MendelErrors). In addition, each likelihood is only calculated if that particular relationship is possible based on the [age difference](#sec:BY-AP) of the pair. The seven underlying likelihoods for each pair can be retrieved with [`CalcPairLL()`](#sec:SevenLL). 
-
-
-The returned parental LLR's are calculated conditional on the final pedigree, and this step can be quite time-consuming. Therefore `sequoia()` can be run with `CalcLLR=FALSE`, and `CalcOHLLR()` can be run separately later (or for any existing pedigree).
+The LLRs for the dam and sire separately are calculated by temporarily dropping the co-parent (if any), and calculating the likelihoods assuming the co-parent is a random draw from the population. The LLR for the parent-pair is the minimum of the dam and sire LLR, each conditional on the co-parent. To retrieve the likelihoods underlying each ratio, use `CalcPairLL()`; specify column `dropPar1` for single-parent likelihoods.
+ 
+Since this step can be quite time-consuming, `sequoia()` can be run with `CalcLLR=FALSE`, and `CalcOHLLR()` can be run separately later. That function can also calculate parental LLR's for any existing pedigree, including for any non-genotyped individuals with at least one genotyped offspring.
 
 
 
 ## Confidence {#sec:EstConf}
 The parental likelihood ratio does not necessarily indicate how likely it is that the assignment is correct. Pedigree-wide confidence probabilities can, among others, be estimated as follows
-
 
  * Simulate genotype data according to the reconstructed (or an existing) pedigree, imposing realistic levels of missingness and genotyping errors (`SimGeno()`);
  * Reconstruct a pedigree from the simulated data (`sequoia()`);
@@ -363,8 +360,47 @@ When repeated at least 10--20 times, the proportion of assignments that is corre
 This process is conveniently wrapped in the function `EstConf()`, which calculates separate confidence levels for dams and sires (which may have very different sampling proportions), for genotyped and dummy parents, and for single parents and members of parent-pairs. The process can be rather time consuming, but from version 2.1 onwards it is possible to run on multiple computer cores in parallel. 
 
 
-\clearpage
 
+## Low assignment rate {#sec:lowAR}
+Pedigree reconstruction with `sequoia()` regularly suffers from a low assignment rate, especially when only a small proportion of parents have been genotyped. This is fundamental to the method: when in doubt, MCMC approaches will return an assignment with a low posterior probability, but `sequoia()` will return no assignment at all. 
+
+In `sequoia()`, an incorrect assignment early on may cause a cascade of other incorrect assignments later in the run, and great care is taken to prevent this. On the flip side, when there is limited genetic or birth year information and/or very few parents have been genotyped, the cascade of *correct* assignments, where maternal assignments fascilitate paternal assignments and v.v. (Figure \@ref(fig:ClusterMatPat)), may never take off. For such situations, different programs with MCMC based approaches are more suitable. 
+
+
+```{r ClusterMatPat, echo=FALSE, eval=TRUE, fig.cap="Sibship clustering of individuals A-D", out.width="100%"} 
+knitr::include_graphics("clustering_mat_helps_pat.png")
+```
+
+
+### Causes
+There are four main causes a pair of true relatives are not assigned, which are not mutually exclusive:
+
+1. There is more than one type of relationship possible between the pair, which cannot be distinguished with certainty (details below);
+2. The type of relationship is clear (e.g. half siblings), but it is unclear whether they are maternal or paternal relatives;
+3. It is clear the pair are mother and daughter (or grandmother -- grand-granddaughter), but it is unclear which of the two is the (grand)mother, due to unknown birth year(s) and absence of a 'complementary' candidate father (and analogous for father-son);
+4. There is more than one plausible candidate (dummy) (grand)parents of one sex, all of which are more likely to be a parent than otherwise related, even when considered jointly. This includes the situation where true offspring are among the candidate parents due to unknown birth years. 
+
+For more details, see [FAQ](sec:FAQlowAR).
+
+Cause (1) has two common underlying causes, which again are not mutually exclusive:
+
+1a. Half-siblings, grandparent--grand-offspring and full avuncular pairs are genetically indistinguishable, even with perfect genetic data. Assignment of half-sibling pairs is only possible when grand-parental and avuncular relationships can be excluded based on the age-difference of the pair, or when both individuals already have a parent assigned (in which case the likelihoods do differ).
+1b. The SNP data is not informative enough to clearly distinguishing between parents and full siblings, between full and half siblings, between half siblings and cousins, etc.. The problem may be specific to a few pairs and due to the randomness of Mendelian segregation, or be widespread due to a low number of SNPs, low MAF, and/or high error rate.
+
+
+
+### Remedies
+Sometimes it is possible to reduce the number of non-assigned parents in the pedigree by providing more life history data, removing SNPs with the highest error rates, or lowering the thresholds `Tfilter` and/or `Tassign`. The latter will reduce the probability of false negatives, but at the same time increase the probability for false positives. If inbreeding and double relationships are rare, using `Complx='simp'` may also improve assignment (see [here](sec:Complx)).
+
+Small adjustments may 'get the snowball rolling' (Figure \@ref(fig:ClusterMatPat)) and greatly increase assignments. Once a sibling pair is assigned, adding additional siblings to the cluster becomes progressively easier as it becomes more and more obvious whether an individual is related to all individuals in the sibship, or to none. 
+
+There are functions in the package that may help identify whether there are un-assigned likely relatives in the dataset, and/or the probable cause of non-assignment of presumed relatives:
+
+- `GetMaybeRel()` will identify any pairs that are likely to be 1st or 2nd degree relatives. It can do so as-is, or conditional on a (reconstructed) pedigree. It may also provide clues whether this is e.g. due to unknown birth years or an impossibility to tell the different 2nd degree relationships apart (TopRel = '2nd').
+- `CalcPairLL()` will return for a specified set of pairs the likelihoods to be parent-offspring, sibling, ... (Table \@ref(tab:rel7)). The pairs may be the output from `GetMaybeRel()`, or e.g. pairs of litter mates. This may e.g. show that it is unclear whether the pair are full or half siblings, but they are probably either one or those. Or it may show the pair are probably either half-siblings or 3rd degree relatives (half-avuncular, cousins, great-grandparent). The latter may be 'declared' half-siblings if the breeding scheme or field data (e.g. being litter mates) makes 3rd degree relatives highly unlikely. You can specify a pedigree and/or ageprior to condition on, and can include a pair multiple times with different age difference or focal relationship to explore their effects on the likelihoods and thereby the LLR. 
+
+
+\clearpage
 
 # Function overview
 
@@ -435,23 +471,25 @@ Identify pairs of individuals likely to be related, but not assigned as such in 
 
 
 ## Pedigree check
-*These functions can be applied to any pedigree, not just pedigrees reconstructed by sequoia.*
+*These functions can be applied to any pedigree, not just pedigrees reconstructed by sequoia. Required input between brackets*
 
 * **SummarySeq** (1 pedigree)  
 Graphical overview of the assignment rate, the proportion dummy parents, sibship sizes, parental LLR distributions, and Mendelian errors, $+$ tables with pedigree summary statistics.
 
 * **CalcOHLLR** (pedigree + genotypes)  
-Count opposite homozygous (OH) loci between parent-offspring pairs and Mendelian errors (ME) between parent-parent-offspring trios, and calculate the parental log-likelihood ratios (LLR). Also returns estimate of actual genotypes. 
+Count opposite homozygous (OH) loci between parent-offspring pairs and Mendelian errors (ME) between parent-parent-offspring trios, and calculate the parental log-likelihood ratios (LLR). 
 
 * **EstConf** (pedigree + genotypes)    
 Estimate assignment error rate (false positives \& false negatives). Using a reference pedigree, repeatedly simulate genotype data, run sequoia, and compare inferred to reference pedigree.
-
 
 * **getAssignCat** (1 pedigree)  
 Identify which individuals are genotyped, and which can potentially be substituted by a dummy individual. 'Dummifiable' are those non-genotyped individuals with at least 2 genotyped offspring, or at least 1 genotyped offspring and 1 genotyped parent.
 
 * **PedCompare** (2 pedigrees)  
 Compare 2 pedigrees, e.g. field and genetically inferred, or reference and inferred-from-simulated-data. Matches dummy parents to non-genotyped parents.
+
+* **CalcRped** (1 pedigree)
+This is a wrapper for `kinship()` in package `kinship2`. 
 
 
 
@@ -466,11 +504,10 @@ Determine the relationship between individual X and all other individuals in the
 * **GetRelM** (pedigree or pairs)
 Generate a matrix with all pairwise relationships from a pedigree or dataframe with pairs
 
-
 * **ComparePairs** (1 or 2 pedigrees)  
 Compare, count and identify different types of relative pairs between two pedigrees, or within one pedigree. [^d] 
 
-[^d]: The matrix returned by `DyadCompare` [Deprecated] is a subset of the matrix returned here using default settings.
+[^d]: The matrix returned by `DyadCompare` \emph{(Deprecated)} is a subset of the matrix returned here using default settings.
 
 * **PlotRelPairs** (matrix)
 plot pairwise relationships between all individuals, as by Colony.
@@ -481,6 +518,9 @@ plot pairwise relationships between all individuals, as by Colony.
 
 * **PedPolish**  
 Ensure all parents \& all genotyped individuals are included, remove duplicates, rename columns, and replace 0 by NA or v.v. Can also generate 'filler' parents for software that requires individuals to have either 0 or 2 parents, never 1. 
+
+* **getGenerations**
+For each individual in a pedigree, count the number of generations since its most distant pedigree founder.
 
 * **ErrToM**  
 Generate a matrix with the probabilities of observed genotypes (columns) conditional on actual genotypes (rows), or return a function to generate such matrices. The error matrix can be used as input for `sequoia` and `CalcOHLLR`, the error function as input for `SimGeno`
@@ -498,7 +538,8 @@ Add a column with family IDs (FIDs) to a pedigree, with each number denoting a c
 * **PedStripFID**  
 Reverse the joining of FID and IID in GenoConvert and LHConvert
 
-
+* ** CalcBYprobs**
+Estimate the probability that individual i with unknown birth year is born in year y, based on the birthyears of its parents and offspring. 
 
 
 # `sequoia()` input
@@ -645,21 +686,48 @@ The default values of `Tfilter` and `Tassign` seem to work well in a wide range 
 
 
 
-## `Complex` 
+## `Complex`  {#sec:Complx}
 The complexity of the mating system considered. One of:
 
 * **`mono`** 
 Only consider monogamous matings. This can be especially useful for small SNP panels that have insufficient power to distinguish reliably between full siblings and half-siblings, but may have ample power to distinguish between full siblings and third degree relatives (e.g. full cousins). Works well when full aunts/uncles and grandparents differ consistently more in age than full siblings, and do not have to be considered as alternatives to full sibling either.
 * **`simp`**
-Consider polygamous matings, but ignore all inbred and [double relationships](#sec:WeirdRels) (e.g. a pair being both paternal half-siblings and maternal full cousins). Such relationships may still be assigned as side-effect. This again can be useful if the SNP panel has limited power, and the occurance of such complex relationships is very rare.
+Consider polygamous matings, but ignore all inbred and double relationships (see below). Such relationships may still be assigned as side-effect. This again can be useful if the SNP panel has limited power, and the occurrence of such complex relationships is very rare.
 * **`full`**
-The default, do consider all kinds of [relationship combinations](#sec:WeirdRels) (e.g. a pair is both paternal half-siblings and maternal aunt-nephew, resulting from a mother and daughter mating mating with the same male).
+The default, do consider all kinds of relationship combinations.
+
+
+### Unusual relationships {#sec:WeirdRels}
+Pedigree inference is often applied in small, (semi-)closed populations, and is regularly done to check for inbreeding. In such cases, pairs of individuals may be related via more than one route. For example, maternal half-siblings may also be niece and aunt via the paternal side, and be mistaken for full-siblings. Or a pair may be both paternal half-siblings, and maternal full cousins. A range of such double relationships is considered explicitly (Table \@ref(tab:DoubleRels)) to minimise such mistakes. If such a type is common in your population but not yet considered by `sequoia`, and seems to be causing problems, please send me an email as adding additional relationships is relatively straightforward.
+
+
+```{r DoubleRels, echo=FALSE, eval=TRUE, results="asis"}
+DR <- rbind(PO = c("--", "--", "Y", "Y","","Y","","","", "Y"),
+            FS = c("--", "--", "--", "--", "--", "Y","", "--", "Y", "Y"),
+            HS = c("Y", "--", "(FS)", "Y", "Y ^2^", "Y", "Y ^2^","","", "Y"),
+            GP = c("Y", "--", "Y", "^1^","","","","","", "Y"),
+            FA = c("", "--","","","", "Y","","","", "Y"),
+            HA = c("", "Y", "Y ^2^","","","","","","", "Y"),
+            GGG = c("", "--","","","","", "^3^","","", "Y"),
+            F1C = c("","","","","","","","","", "Y"))
+colnames(DR) <- c(rownames(DR), "H1C", "U")
+knitr::kable(DR,
+             caption = "Double relationships between pairs of individuals. Abbreviations as before, and GGG=great-grandparent, F1C=full first cousins, H1C=half first cousins (parents are HS).",
+             format = "pipe", booktabs=TRUE)  # forces ^1^ etc. through pandoc first 
+```
+--: impossible  
+Y: explicitly considered  
+empty: not (yet) explicitly considered (but may be inferred as 'side effect')  
+^1^: Can not be considered explicitly, as likelihood identical to PO   
+^2^: Including the special case were one is inbred  
+^3^: Can not be considered explicitly, as likelihood identical to GP  
+
+<!-- &nbsp;    extra empty line-->
 
 
 
 ## `Herm`
 Hermaphrodites, one of:
-
 * **`no`**
 Dioecious (separate sexes) species
 * **`A`**
@@ -690,7 +758,7 @@ UA <- cbind("no" = c("Y", "Y", ""),
 rownames(UA) <- c("$LR_{age} > 0$", "$LLR_{SNP} > T_{assign}$", 
                   "$LLR_{SNP} + LLR_{age} > T_{assign}$")
 
-knitr::kable(UA, caption = "Parameter 'UseAge' (see text for definitions)", align='ccc', escape=FALSE, booktabs=TRUE)
+knitr::kable(UA, caption = "Parameter 'UseAge' (see text for definitions)", align='ccc', escape=FALSE, booktabs=TRUE, position="!h")
 ```
 
 
@@ -698,7 +766,7 @@ Below an example of how to calculate $LLR_{SNP}$ and $LLR_{age}$, for a grandpar
 
 Such assignments which rely strongly on the age difference of a pair, in combination with the estimated age distribution of relative pairs, are often not desirable, and are therefore not made by default (`UseAge = 'yes'`).  
 
-```{r griffin-useAge, echo=TRUE, eval=TRUE}
+```{r griffin-useAge-1, echo=TRUE, eval=TRUE}
 data(Ped_griffin, SeqOUT_griffin, package="sequoia")
 GenoX <- SimGeno(Ped_griffin, nSnp = 400, ParMis=0)
 LLR_SNP <- CalcPairLL(Pairs = data.frame(ID1="i122_2007_M", ID2="i042_2003_F"), 
@@ -709,7 +777,7 @@ knitr::kable(rbind(SNP = LLR_SNP[,colnames(LLR_Age)],
                    "SNP + Age" = LLR_SNP[,colnames(LLR_Age)] +
                      LLR_Age),
              digits=1, booktabs=TRUE, 
-             caption = "Example of genetic and age-based LLR for a grandparent - grand-offspring pair")
+             caption = "LLR example for a grandparent - grand-offspring pair")
 ```
 
 
@@ -976,17 +1044,17 @@ See [here]() for a detailed walk-through of this example, and suggestions on how
 
 In short, the main aim of checking the discrepancies is to figure out the underlying cause of each case:   
 
-* pedigree reconstruction error,  
-* wet lab error (sample swap/mislabeling), or   
-* field 'error' (e.g. mistaken/unknown identity),  
+* pedigree reconstruction error,
+* wet lab error (sample swap/mislabeling), or
+* field 'error' (e.g. mistaken/unknown identity),
 
 so that the records and/or pedigree can be corrected. `PedCompare()` only points you to where the discrepancies are; field records, lab records and common sense are needed to determine the most likely cause (or determine that the cause is unknowable). 
 
 Fairly common (but still rare) pedigree reconstruction errors are  
 
-* one sibship is erroneously split into two,  
-* two sibships are erroneously merged into one,  
-* an aunt/uncle is assigned as sibship-grandparent,  
+* one sibship is erroneously split into two,
+* two sibships are erroneously merged into one,
+* an aunt/uncle is assigned as sibship-grandparent,
 * the parent-offspring relationship between to dummy individuals, or between two genotyped individuals with unknown birth years, is flipped the wrong way around.  
 
 
@@ -1021,10 +1089,12 @@ PC <- PedCompare(Ped1 = ExistingPedigree,
 
 ## Relatedness {#sec:compR}
 
-### Pedigree relatedness
+### Pedigree relatedness  {#sec:Rped}
 Another way to compare two pedigrees is to compare the pedigree-based relatednesses calculated from each. In R, pedigree relatedness can for example be calculated by the R package `kinship2` -- relatedness is defined as twice the kinship coefficient.
 
-`kinship2` requires a pedigree with columns id - dadid - momid - sex, and requires that individuals either have two parents, or zero. The latter can be achieved with `sequoia::PedPolish(, FillParents=TRUE)`. From `sequoia` version 2.1, `CalcRPed()` will reformat the pedigree, call `kinship2::kinship()`, and return relatedness coefficients as a matrix or dataframe. Then, do the same for the second pedigree, and merge the dataframes. As the number of pairs $p$ becomes very large even for moderate numbers of individuals $n$ ($p$ = $n \times (n-1)/2$, so e.g. 2 million pairs for 2 thousand individuals), it is a good idea to use package `data.table` to assist with merging:
+`kinship2` requires a pedigree with columns id - dadid - momid - sex, and requires that individuals either have two parents, or zero. The latter can be achieved with `sequoia::PedPolish(, FillParents=TRUE)`. From `sequoia` version 2.1, `CalcRPed()` will reformat the pedigree, call `kinship2::kinship()`, and return relatedness coefficients as a matrix or dataframe. 
+
+The same can be done for a second pedigree, and the two dataframes merged. As the number of pairs $p$ becomes very large even for moderate numbers of individuals $n$ ($p$ = $n \times (n-1)/2$, so e.g. 2 million pairs for 2 thousand individuals), it is a good idea to use package `data.table` to assist with merging (merge in seconds vs. many minutes or not at all):
 
 ```{r, eval=FALSE}
 Rped.old <- CalcRped(Ped_griffin, OUT="DF")
@@ -1088,62 +1158,31 @@ hexbin::hexVP.abline(hbp$plot.vp, a=0, b=1)
 ```
 
 
-```{r eval=TRUE, fig.cap="Relatedness hexbinplot example"}
+```{r eval=TRUE, fig.cap="Relatedness hexbinplot example", out.width="80%", position="!h"}
 knitr::include_graphics("hexbin.png")
 ```
 
+## Cluster families
+Certain analyses, such as the Mendelian error check in PLINK, are done on a family-by-family basis. `FindFamilies()` takes a pedigree as input and clusters the individuals in as few families as possible, by repeatedly searching all ancestors and all descendants of each individual and ensuring those all have the same family ID.
 
-
-# Other
-
-
-## Likely relatives {#sec:maybepar}
-During parentage assignment, occasionally pairs are encountered which genetically are more likely to be parent-offspring than unrelated, but which can not be assigned because the sex or age difference is unknown or incompatible, or because the LLR is just below the assignment threshold (e.g. about equally likely PO and FS). Similarly, during pedigree reconstruction not all pairs of almost-certainly-relatives can be assigned, e.g. because half-siblings, full avuncular and grandparent--grand-offspring cannot always be distinguished. Distinguishing different kinds of second degree relatives relies on either both individuals already having at least one parent assigned, or two out of three being impossible due to the age difference of the pair. When neither is the case, the output indicates '2nd' as most likely relationship, and the LLR is between being 2nd degree relatives versus the most likely of PO (parent-offspring), FS (full siblings), HA (3rd degree relative) or U (unrelated).
-
-These pairs can be identified by function `GetMaybeRel()` with as argument the genotype data and optionally any pedigree or a sequoia output list. It will also identify parent-parent-offspring trios which could not be assigned because the sex for both parents is unknown.
-
-
-## Seven likelihoods  {#sec:SevenLL}
-If you wish to see the likelihoods underlying the likelihood ratios reported in the pedigree or the `GetMaybeRel()` output, `CalcPairLL()` is available. You can specify a pedigree and/or ageprior to condition on, and can include a pair multiple times with different age difference or focal relationship to explore their effects on the likelihoods and thereby the LLR. 
-
-### Parental LLR
-The likelihood ratio as reported in the pedigree for a parent -- offspring pair $P$, $O$ is calculated as follows:
-
-* temporarily drop both parents of $O$
-* calculate the likelihoods for the various possible relationships between $P$ and $O$
-* calculate single parent LLR: $LLR = LL_{PO} - LL_{next-most-likely}$
-* restore the co-parent of $P$, if any
-* again calculate the likelihoods for the various possible relationships between $P$ and $O$ 
-* calculate parent-pair LLR: $LLR = LL_{PO} - LL_{next-most-likely}$, where $LL_{PO}$ is conditional on $P$'s co-parent, and $LL_{next-most-likely}$ is with or without the co-parent (typically withs are likelier than withouts, if the parent pair was assigned)
-* restore both parents of $O$
-
-In `CalcPairLL()`, you can specify to temporarily drop one or both parents via the `dropPar1` column in the `Pairs` dataframe.  
+This function does not take separate FID and IID columns in the input pedigree, rather these need to be joined together before running `FindFamilies()` (e.g. with `paste()`), and then split afterwards using `PedStripFID()`.
 
 
 
-## Estimated genotype probability 
-The actual genotype of individuals is estimated from their observed genotype, the presumed genotyping error rate and pattern, and the (estimated) genotype of any assigned parents. This is used to fill in any missing genotyped, and to allow and possibly adjust for any genotyping errors. It can be returned as a 3D array by `CalcOHLLR()`. 
+# Hermaphrodites
+Hermaphrodites have been re-implemented in versions 2.2 and 2.3, and now also full pedigree reconstruction should work as expected. Selfing is fully supported, also when a selfing parent or its selfed offspring are non-genotyped, and the aim is to infer their genotyped relatives. 
 
-During pedigree reconstruction, updating both pedigree links and genotype estimates risks wild oscillations if the latter are based on both parental and offspring genotypes. Therefore, offspring genotypes do currently not contribute to the genotype estimates for real individuals. For dummy individuals, it is context-dependent whether (part of) the offspring contribute. 
+With hermaphrodites it is not self-evident whether an identified parent should be assigned as dam or as sire. Sex-linked markers are not implemented in `sequoia`, and sequential hermaphroditism (male until age $t$, and female after, or *v.v.*) is not the norm. 
 
-A more consistent implementation of real and dummy individuals is hoped for
-in a future version, but would require rewriting a large part of the Fortran
-source code.
+Two alternative approaches are available, by specifying parameter `Herm='A'` or `Herm='B'`. 
 
 
+## Herm 'A': Pedigree prior
+A genetically identified parent will be assigned when it matches a candidate parent, or when it forms a complementary parent-pair with such an assigned parent. The candidate dam may e.g. be the plant from which the seed was collected. Candidate parent--offspring pairs that are not a genetic match will never be assigned, non-genotyped candidate parents are ignored. 
 
+In absence of a pedigree prior, only instances of selfing will be assigned. 
 
-## Hermaphrodites
-Hermaphrodites have been re-implemented in version 2.2, and now full pedigree reconstruction should work largely as expected. 
-
-A challenge with hermaphrodites is that additional information is required to determine whether a genetic parent should be assigned as dam or as sire. Sex-linked markers are not implemented in `sequoia`, and sequential hermaphroditism (male until age $t$, and female after, or *v.v.*) is not the norm. 
-
-Two alternative approaches are possible: provide a pedigree prior, or ignore sex roles altogether. 
-
-### Pedigree prior
-This is a dataframe with for each individual its candidate dam and/or ('pedigree prior'), e.g. the plant from which the seed was collected. Then, when two configurations are genetically equally likely, the one that matches the prior pedigree is assigned. Candidate parent--offspring pairs that are not genetically a match will never be assigned.
-
-This pedigree 'prior' can be provided by specifying `SeqList$PedigreePar` as input *and* setting `Module='par'` (`MaxSibIter=0`):
+The pedigree 'prior' can only be used during parentage assignment, by specifying `SeqList$PedigreePar` as input *and* setting `Module='par'` (`MaxSibIter=0`):
 ```{r }
 cand.dams <- read.table("Candidate_dams.txt", header=TRUE,
                         stringsAsFactors=FALSE)
@@ -1163,16 +1202,22 @@ seq.herm <- sequoia(GenoM = Geno,
 ```
 
 
-### Ignore sex role
-In some settings it is irrelevant whether the parent was the maternal or paternal parent. When running `sequoia()` with `Herm='B'`, during `Module='par'` single parents are assigned as dams, and in parent-pairs dam vs sire is determined by their order in the genotype file. Half-sib clusters will therefore (initially) mostly appear as paternal siblings; when `Herm='B'` this has absolutely no biological meaning like pollen-donors being less likely to be sampled than ovule-donors (for this distinction, you need to run with `Herm='A'`). 
 
-The offspring of a non-genotyped parent may be arbitrarily split into a paternal and a maternal sibship. These female/male 'clones' are currently not linked during reconstruction, but likely pairs are returned in the output as list element `DummyClones`. These also include cases of selfing by non-genotyped individuals, for both `Herm='A'` and `Herm='B'` (these may include sibships of size 1 without grandparents). 
+## Herm 'B': Ignore sex role
+Often it is irrelevant whether the parent was the maternal or paternal parent, and with this setting single parents are assigned as dams, and in parent-pairs dam vs sire is determined by their order in the genotype file. 
 
 
-### Assignment errors
-`PedCompare()` is not useful in combination with `Herm='B'`, as any dam assigned as sire and v.v. will show up as error. Use instead `ComparePairs(, patmat=FALSE)`.
+## Hermaphrodite dummies
+Whether half-siblings share a dummy dam or a dummy sire is arbitrary. If one or more individuals in a sibship are the product of selfing, the maternal and paternal halves will be linked, and additional half-siblings will be arbitrarily assigned to either half. Dummy individuals which occur as both dam and sire get dummy prefix `'H'`, an alternative 3rd `DummyPrefix` can be specified in (most?) relevant functions.
 
-One type of assignment error is unavoidable: if the true parent is unsampled and the product of selfing, the true, sampled grandparent will be indistinguishable from a parent. If both the true parent and true grandparent are sampled, the inbred one will be assigned (which works as long as the grandparent is not also inbred). 
+In `SeqList$DummyIDs`, the offspring-as-dam and offspring-as-sire are shown separately, with the same id ('H0xxx') and Sex=1 vs Sex=2 respectively. Selfed offspring will occur in both rows. Estimated birth years and other aspects may differ somewhat between the maternal and paternal halves, as during pedigree reconstruction they are (currently?) only linked in some aspects but not others. 
+
+
+## Assignment errors
+`PedCompare()` is not useful in combination with `Herm='B'`, as any dam assigned as sire and v.v. will show up as error. Use instead `ComparePairs(, patmat=FALSE)`, which will also pick up half-siblings for which the mother of $i$ is the father of $j$. 
+
+One type of assignment error is unavoidable: if the true parent is unsampled and the product of selfing, a sampled grandparent will be indistinguishable from a parent. Similarly, when the true parent is sampled, but both the parent and the grandparent are the product of selfing, they are genetically nearly identical and often erroneously interchanged when birth year information is absent. 
+
 
 ```{r parent-selfed, echo=FALSE, eval=TRUE, fig.cap="Two configurations with identical likelihoods", out.width="20%", fig.pos="!h", fig.align="center"} 
 knitr::include_graphics("selfed_parent.png")
@@ -1180,39 +1225,21 @@ knitr::include_graphics("selfed_parent.png")
 
  
 
+<!--
+# Other
 
-## Cluster families
-Certain analyses, such as the Mendelian error check in PLINK, are done on a family-by-family basis. `FindFamilies()` takes a pedigree as input and clusters the individuals in as few families as possible, by repeatedly searching all ancestors and all descendants of each individual and ensuring those all have the same family ID.
+## Estimated genotype probability 
+The actual genotype of individuals is estimated from their observed genotype, the presumed genotyping error rate and pattern, and the (estimated) genotype of any assigned parents. This is used to fill in any missing genotyped, and to allow and possibly adjust for any genotyping errors. It can be returned as a 3D array by `CalcOHLLR()`. 
 
-This function does not take separate FID and IID columns in the input pedigree, rather these need to be joined together before running `FindFamilies()` (e.g. with `paste()`), and then split afterwards using `PedStripFID()`.
+During pedigree reconstruction, updating both pedigree links and genotype estimates risks wild oscillations if the latter are based on both parental and offspring genotypes. Therefore, offspring genotypes do currently not contribute to the genotype estimates for real individuals. For dummy individuals, it is context-dependent whether (part of) the offspring contribute. 
+
+A more consistent implementation of real and dummy individuals is hoped for
+in a future version, but would require rewriting a large part of the Fortran
+source code.
+-->
 
 
-## Unusual relationships {#sec:WeirdRels}
-Pedigree inference is often applied in small, (semi-)closed populations, and is regularly done to check for inbreeding. In such cases, pairs of individuals may be related via more than one route. For example, maternal half-siblings may also be niece and aunt via the paternal side, and be mistaken for full-siblings. A range of such double relationships is considered explicitly (Table \@ref(tab:DoubleRels)) to minimise such mistakes. If such a type is common in your population but not yet considered by `sequoia`, and seems to be causing problems, please send me an email as adding additional relationships is relatively straightforward.
 
-
-```{r DoubleRels, echo=FALSE, eval=TRUE, results="asis"}
-DR <- rbind(PO = c("--", "--", "Y", "Y","","Y","","","", "Y"),
-            FS = c("--", "--", "--", "--", "--", "Y","", "--", "Y", "Y"),
-            HS = c("Y", "--", "(FS)", "Y", "Y ^2^", "Y", "Y ^2^","","", "Y"),
-            GP = c("Y", "--", "Y", "^1^","","","","","", "Y"),
-            FA = c("", "--","","","", "Y","","","", "Y"),
-            HA = c("", "Y", "Y ^2^","","","","","","", "Y"),
-            GGG = c("", "--","","","","", "^3^","","", "Y"),
-            F1C = c("","","","","","","","","", "Y"))
-colnames(DR) <- c(rownames(DR), "H1C", "U")
-knitr::kable(DR,
-             caption = "Double relationships between pairs of individuals. Abbreviations as before, and GGG=great-grandparent, F1C=full first cousins, H1C=half first cousins (parents are HS).",
-             format = "pipe", booktabs=TRUE)  # forces ^1^ etc. through pandoc first 
-```
---: impossible  
-Y: explicitly considered  
-empty: not (yet) explicitly considered (but may be inferred as 'side effect')  
-^1^: Can not be considered explicitly, as likelihood identical to PO   
-^2^: Including the special case were one is inbred  
-^3^: Can not be considered explicitly, as likelihood identical to GP  
-
-&nbsp;   <!-- extra empty line-->
 
 
 # FAQ
@@ -1223,16 +1250,19 @@ For smaller datasets (say up to 1000 individuals) it may be useful to read in th
 
 
 
-## Low assignment rate
+## Low assignment rate   {#sec:FAQlowAR}
+See also [key points](sec:lowAR).
+
 In many cases, assignment rate can be boosted without increasing the number of SNPs: by assuming a different genotyping error rate, providing sex or birth year information on more individuals, or fine-tuning the ageprior. Sometimes *reducing* the number of SNPs may increase assignment rate, by removing those with the highest error rate and/or SNPs in close LD.
 
 ### Not enough SNPs
 As opposed to most other pedigree assignment programs, Sequoia does not rely on MCMC to explore many different pedigree possibilities, but instead sequentially assigns highly likely relationships, and expands the pedigree step by step. For a relationship to be highly likely, a substantial number of SNPs is necessary, larger than for MCMC methods: at least 100-200 for parentage assignment, or full sibling clustering in a monogamous population, and about 400-500 otherwise. More is not always better: with tens of thousands of SNPs many will unavoidably be in high LD (unless you work on a species with a very large genome and very high $N_e$), and the signal will get lost in the noise. Using more than 1000 SNPs is never necessary, and for a typical vertebrate genome there is little benefit of using more than 500 good SNPs.
 
+This unfortunately also means that sequoia is unsuitable for species with a very small genome.
 
 
 ### Genotyping errors
-A few SNPs with a high (apparent) error rate may throw off pedigree reconstruction if their erroneous signal is not sufficiently offset out by a large number of more accurate SNPs. Such SNPs can be identified with `SnpStats()`, using an existing pedigree or one from an preliminary round of parentage assignment. If there are clear outliers with regards to estimated error rate, it may be worth exploring pedigree reconstruction without these SNPs.
+A few SNPs with a high (apparent) error rate may throw off pedigree reconstruction if their erroneous signal is not sufficiently offset by a large number of more accurate SNPs. Such SNPs can be identified with `SnpStats()`, using an existing pedigree or one from an preliminary round of parentage assignment. If there are clear outliers with regards to estimated error rate, it may be worth exploring pedigree reconstruction without these SNPs.
 
 ### Lacking sex information
 Currently Sequoia cannot handle sex-linked markers, and therefore cannot distinguish between maternal versus paternal relatives. Sometimes the sex of an individual can be inferred, if it forms a complementary parent-pair with an individual of known sex. This is also the manner in which the sex of dummy parents is determined; half-sibships sharing a parent of unknown sex are not currently implemented.
@@ -1249,14 +1279,13 @@ Age information will also help to distinguish between the three different types 
 
 
 ### Uninformative age prior
-The ageprior used for full pedigree reconstruction is estimated from the birth year differences of parent-offspring pairs assigned during the initial parentage assignment. When only few parents are assigned, or when many birth years are unknown, this ageprior may not be very informative. If a large pedigree is available from the same or a similar population (e.g. based on observations and microsatellite paternity assignments), it can be useful to estimate the agepriors from that pedigree. For details, see the [age vignette](./introduction.html)
+The ageprior used for full pedigree reconstruction is estimated from the birth year differences of parent-offspring pairs assigned during the initial parentage assignment. When only few parents are assigned, or when many birth years are unknown, this ageprior may not be very informative. If a large pedigree is available from the same or a similar population (e.g. based on observations and microsatellite paternity assignments), it can be useful to estimate the agepriors from that pedigree. For details, see the [age vignette](vignette-age.pdf)
 
 
 ### Mating system
 When the population has a complex mating system, with overlapping generations and many double relatives, a large number of SNPs is needed to distinguish between various plausible alternatives. When the power of the SNP panel is insufficient to make the distinction, no assignment will be made.
 
 When inbreeding and complex relationships (e.g. paternal half-sibling as well as maternal half-aunt) are rare, ignoring these typically increases assignment rate (`Complex="simp"`). Similarly, when polygamy is rare and not of particular interest, assuming a monogamous mating system typically increases assignment rate (`Complex="mono"`). However, these choices will risk erroneous assignments when complex relationships or polygamy, respectively, do occur.
-
 
 
 

@@ -21,7 +21,7 @@ correct and all columns are as.character.}
 \item{DoDummies}{'new', 'old', or 'no' (ignore all non-genotyped
 individuals).}
 
-\item{DumPrefx}{Prefix used to identify dummies when \code{DoDummies = 'old'}}
+\item{DumPrefix}{Prefix to identify dummies when \code{DoDummies = 'old'}}
 }
 \value{
 a list with

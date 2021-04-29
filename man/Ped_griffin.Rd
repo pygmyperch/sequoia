@@ -15,9 +15,9 @@ Example pedigree used in the ageprior vignette, with overlapping
   generations.
 }
 \seealso{
-\code{\link{SeqOUT_griffin}} for a sequoia run on simulated genotype
-  data based on this pedigree; \code{\link{Ped_HSg5}} for another pedigree,
-  \code{\link{sequoia}}
+\code{\link{LH_griffin}}; \code{\link{SeqOUT_griffin}} for a sequoia
+  run on simulated genotype data based on this pedigree;
+  \code{\link{Ped_HSg5}} for another pedigree, \code{\link{sequoia}}
 }
 \author{
 Jisca Huisman, \email{jisca.huisman@gmail.com}

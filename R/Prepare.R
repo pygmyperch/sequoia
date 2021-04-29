@@ -78,6 +78,9 @@ SpecsToParam <- function(Specs, ErrM = NULL, ErrFlavour = NULL,
                                     ME = MaxMismatchME))
   }
 
+  if ("DummyPrefixHerm" %in% names(Specs))
+    L$DummyPrefix <- c(L$DummyPrefix, Specs$DummyPrefixHerm)
+
   # note: code below is namedlist(), but not sure if/how to pass along names to other function with '...'
   L2 <- list(...)
   L2Names <- as.character(as.list( match.call())[-(1:5)])  # 1st is function name
@@ -115,7 +118,8 @@ ParamToSpecs <- function(PARAM, TimeStart, ErrFlavour)
                         NumberSnps = dimGeno[2],
                         GenotypingErrorRate = ifelse(length(Err)==1,
                                                      Err,
-                                                     signif(1 - mean(c(diag(ErrM), ErrM[2,2])), 3)),  # under HWE, MAF=0.5: 0.25-0.5-0.25
+                                                     signif(1 - mean(c(diag(ErrM),
+                                                                       ErrM[2,2])), 3)),  # under HWE, MAF=0.5: 0.25-0.5-0.25
                         MaxMismatchDUP = MaxMismatchV["DUP"],
                         MaxMismatchOH = MaxMismatchV["OH"],
                         MaxMismatchME = MaxMismatchV["ME"],
@@ -127,6 +131,7 @@ ParamToSpecs <- function(PARAM, TimeStart, ErrFlavour)
                         MaxSibIter = MaxSibIter,
                         DummyPrefixFemale = DummyPrefix[1],
                         DummyPrefixMale = DummyPrefix[2],
+                        DummyPrefixHerm = DummyPrefix[3],
                         Complexity = Complex,
                         Herm = Herm,
                         UseAge = UseAge,
@@ -141,6 +146,7 @@ ParamToSpecs <- function(PARAM, TimeStart, ErrFlavour)
                         TimeStart = TimeStart,
                         TimeEnd = Sys.time(),   # this function is called at the end of sequoia()
                         stringsAsFactors = FALSE))
+  if (PARAM$Herm == "no")  DF <- DF[, colnames(DF)!="DummyPrefixHerm"]
   rownames(DF) <- "Specs"
   return( DF )
 }
@@ -314,7 +320,7 @@ CheckParams <- function(PARAM)
 
   # other
   if ("DummyPrefix" %in% names(PARAM)) {
-    if (length(PARAM$DummyPrefix) != 2 |
+    if (!length(PARAM$DummyPrefix) %in% c(2,3) |
         any(make.names(PARAM$DummyPrefix) != PARAM$DummyPrefix))
       stop("'DummyPrefix' should be a length-2 character vector with syntactically valid names")
   }

@@ -119,6 +119,9 @@ GetMaybeRel <- function(GenoM = NULL,
     }
   }
   if (!Module %in% c("par", "ped"))  stop("'Module' must be 'par' or 'ped'")
+  if(!quiet)  message("Searching for non-assigned ",
+                      c(par="parent-offspring", ped="relative")[Module], " pairs ...",
+                      " (Module = ", Module, ")")
 
 
   # unpack SeqList ----
@@ -158,7 +161,7 @@ GetMaybeRel <- function(GenoM = NULL,
 
   # Specs / param ----
   if ("Specs" %in% names(SeqList)) {
-    if(!quiet)  message("settings in SeqList$Specs will overrule input parameters, except Module")
+    if(!quiet)  message("settings in SeqList$Specs will overrule input parameters")
     SeqList$Specs$Module <- Module
     PARAM <- SpecsToParam(SeqList$Specs, SeqList$ErrM, ErrFlavour,
                           dimGeno = dim(GenoM), Module, MaxPairs, quiet)  # overrule values in SeqList

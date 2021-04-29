@@ -96,9 +96,10 @@ CheckGeno <- function(GenoM, quiet=FALSE, Plot=FALSE,
   if (any(grepl(" ", rownames(GenoM))))  stop("GenoM rownames must not include spaces")
 
   DP <- sapply(DumPrefix, function(x) ifelse(nchar(x)==1, paste0(x,"0"), x))
-  if (any(substr(rownames(GenoM),1,nchar(DP[1]))==DP[1]) |
-      any(substr(rownames(GenoM),1,nchar(DP[2]))==DP[2])) {
-    stop("DummyPrefix must not occur in GenoM rownames")
+  for (i in seq_along(DumPrefix)) {
+    if (any(substr(rownames(GenoM),1,nchar(DP[i]))==DP[i])) {
+      stop("DummyPrefix must not occur in GenoM rownames")
+    }
   }
 
   warn <- function(...)

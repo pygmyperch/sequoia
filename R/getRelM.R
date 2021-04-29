@@ -32,7 +32,7 @@
 #'    \item{FS}{Full sibling}
 #'    \item{MHS}{Maternal half-sibling}
 #'    \item{PHS}{Paternal half-sibling}
-#'    \item{XHS}{'cross' half-sibling (hermaphrodites)}
+#'    \item{XHS}{other half-sibling (hermaphrodites)}
 #'    \item{HS}{half-sibling (\code{patmat=FALSE})}
 #'    \item{MGM}{Maternal grandmother}
 #'    \item{MGF}{Maternal grandfather}
@@ -158,10 +158,10 @@ GetRelM <- function(Pedigree = NULL,
 #' or not (0). The various relationship considered are in the 3rd dimension:
 #'  \item{M}{}
 #'  \item{P}{}
-#'  \item{FS}{full siblings, including double cross-sibs}
+#'  \item{FS}{full siblings, including double 'other half sibs'}
 #'  \item{MS}{}
 #'  \item{PS}{}
-#'  \item{XS}{cross-sibs: mother of A is father of B, or vv}
+#'  \item{XS}{other sibs: mother of A is father of B, or vv}
 #' etc.
 #'
 #' @keywords internal
@@ -182,7 +182,7 @@ GetRelA <- function(Ped = NULL, GenBack = 1, patmat = TRUE)
                                                         which(Ped[,"id"]==x)))
   }
 
-  Rels <- c("S", "M", "P", "O", "FS", "MHS", "PHS", "XHS")  # XHS: cross-half-sibs
+  Rels <- c("S", "M", "P", "O", "FS", "MHS", "PHS", "XHS")  # XHS: 'cross'-half-sibs
   if (GenBack == 2) {
     Rels <- c(Rels, "MGM", "MGF", "PGM", "PGF", "GO",
     "FA", "FN", "HA", "HN", "DFC1", "FC1")

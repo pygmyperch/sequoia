@@ -102,15 +102,32 @@ NULL
 #'
 #' @author Jisca Huisman, \email{jisca.huisman@gmail.com}
 #'
-#' @seealso \code{\link{SeqOUT_griffin}} for a sequoia run on simulated genotype
-#'   data based on this pedigree; \code{\link{Ped_HSg5}} for another pedigree,
-#'   \code{\link{sequoia}}
+#' @seealso  \code{\link{LH_griffin}}; \code{\link{SeqOUT_griffin}} for a sequoia
+#'   run on simulated genotype data based on this pedigree;
+#'   \code{\link{Ped_HSg5}} for another pedigree, \code{\link{sequoia}}
 #'
 #' @docType data
 #' @keywords datasets sequoia
 #' @name Ped_griffin
 #' @usage data(Ped_griffin)
 #' @format A data frame with 200 rows and 4 variables (id, dam, sire, birthyear)
+NULL
+
+
+#===============================================================================
+#' @title Example lifehistory data: griffins
+#'
+#' @description Example lifehistory data for griffin pedigree
+#'
+#' @author Jisca Huisman, \email{jisca.huisman@gmail.com}
+#'
+#' @seealso \code{\link{Ped_griffin}}, \code{\link{SeqOUT_griffin}}
+#'
+#' @docType data
+#' @keywords datasets sequoia
+#' @name LH_griffin
+#' @usage data(LH_griffin)
+#' @format A data frame with 200 rows and 3 variables (ID, Sex, BirthYear)
 NULL
 
 

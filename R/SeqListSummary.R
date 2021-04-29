@@ -9,12 +9,14 @@
 #'   sire. Column names are ignored, as are additional columns.
 #' @param DumPrefix character vector of length 2 with prefixes for dummy dams
 #'   (mothers) and sires (fathers). Will be read from \code{SeqList}'s 'Specs'
-#'   if provided. Used to distinguish between dummies and non-dummies.
+#'   if provided. Used to distinguish between dummies and non-dummies. Length 3
+#'   in case of hermaphrodites.
 #' @param SNPd character vector with ids of SNP genotyped individuals. Only when
 #'   \code{Pedigree} is provided instead of \code{SeqList}, then used to distinguish
 #'   between genetically assigned parents and 'observed' parents (e.g. observed
-#'   in the field, or assigned previously using microsatellites). Will be read
-#'   from \code{SeqList}'s 'PedigreePar' if provided.
+#'   in the field, or assigned previously using microsatellites). If
+#'   \code{SeqList}'s 'PedigreePar' is provided, all ids in that dataframe will
+#'   be presumed genotyped.
 #' @param Plot  show barplots and histograms of the results, as well as of the
 #'   parental LLRs, Mendelian errors, and agepriors, if present.
 #' @param Panels  character vector with panel(s) to plot. Choose from 'all',
@@ -83,30 +85,38 @@ SummarySeq <- function(SeqList = NULL,
 
   # check input
   Ped <- PedPolish(PedIN, ZeroToNA=TRUE, StopIfInvalid=FALSE)  # else problem when running sequoia()
-  Ped$Sex <- ifelse(Ped$id %in% Ped$dam, "Female",
-                ifelse(Ped$id %in% Ped$sire, "Male", "Unknown"))
-  Ped$Sex <- factor(Ped$Sex, levels=c("Female", "Male", "Unknown"))
+  Ped$Sex <- with(Ped, ifelse(id %in% dam,
+                             ifelse(id %in% sire,
+                             "Herm", "Female"),
+                ifelse(id %in% sire, "Male", "Unknown")))
+  if (any(Ped$Sex == "Herm")) {
+    nSex <- 4
+    Ped$Sex <- factor(Ped$Sex, levels=c("Female", "Male", "Unknown", "Herm"))
+  } else {
+    nSex <- 3
+    Ped$Sex <- factor(Ped$Sex, levels=c("Female", "Male", "Unknown"))
+  }
 
   if ("Specs" %in% names(SeqList)) {
-    DumPrefix <- unlist(SeqList$Specs[,c("DummyPrefixFemale", "DummyPrefixMale")])
+    DPnames <- c("DummyPrefixFemale", "DummyPrefixMale", "DummyPrefixHerm")
+    DumPrefix <- unlist(SeqList$Specs[intersect(names(SeqList$Specs), DPnames)])
     DumPrefix <- sapply(DumPrefix, function(x) ifelse(nchar(x)==1, paste0(x,"0"), x))
-  } else {
-    if (length(DumPrefix)!=2)  stop("DumPrefix should be a character vector of length 2")
   }
-  if (is.null(SNPd) & "PedigreePar" %in% names(SeqList)) {
+  if (length(DumPrefix)==2 & any(Ped$Sex == "Herm"))
+    DumPrefix <- c(DumPrefix, "H0")
+  if (is.null(SNPd) & "PedigreePar" %in% names(SeqList))
     SNPd <- SeqList$PedigreePar$id
-  }
 
   for (x in c("id", "dam", "sire")) {
     Ped[, paste0("GDO.", x)] <- getGDO(Ped[, x], SNPd, DumPrefix)
   }
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~
-  ParentCount <- array(dim = c(2,3,2,4),
+  ParentCount <- array(dim = c(2,nSex,2,4),
                        dimnames = list(c("G", "D"),   # type of indiv
-                                       c("Female", "Male", "Unknown"),   # sex of indiv
+                                       levels(Ped$Sex),
                                        c("Dam", "Sire"),   # sex of parent
-                                       c("Genotyped", "Dummy", "Observed", "None")))  # type of parent
+                                       levels(Ped$GDO.id)))   # type of parent
   ParentCount[,,"Dam",] <- with(Ped, table(GDO.id, Sex, GDO.dam))[c("Genotyped", "Dummy"),,]
   ParentCount[,,"Sire",] <- with(Ped, table(GDO.id, Sex, GDO.sire))[c("Genotyped", "Dummy"),,]
 
@@ -124,7 +134,7 @@ SummarySeq <- function(SeqList = NULL,
   GPCount <- array(dim=c(3,4,4),
                    dimnames = list(c("G", "D", "T"),   # type of indiv
                                    c(GPX),
-                                   c("Genotyped", "Dummy", "Observed", "None")))  # type of GP
+                                   levels(Ped$GDO.id)))  # type of GP
   for (x in c(GPX)) {
     GPCount[c("G","D"),x,] <- table(PedGP$GDO.id, PedGP[, paste0("GDO.",x)])[c("Genotyped", "Dummy"),]
   }
@@ -155,23 +165,39 @@ SummarySeq <- function(SeqList = NULL,
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~
   PedG <- Ped[Ped$GDO.id == "Genotyped", ]
-
   # sibs with dummy/observed parent still count as sibs
-  SibCount <- matrix(NA, 3, 2,
-                     dimnames = list(c("full", "mat", "pat"),
-                                     c("All", "SNPd")))
-  for (x in c("full", "mat", "pat")) {
-    p <- c(full = "ParentPair", mat = "dam", pat = "sire")[[x]]
-    for (a in 1:2) {
-      if (a==1)  tbl <- table(table(Ped[, p]))
-      if (a==2)  tbl <- table(table(PedG[, p]))
-      SibS <- as.numeric(rownames(tbl))
-      SibCount[x, a] <- sum(tbl * SibS * (SibS -1) / 2)
-    }
-  }
-  SibCount[2:3, ] <- sweep(SibCount[2:3, ], 2, SibCount["full", ], "-")
 
-  rownames(SibCount) <- c("full sibs", "maternal half sib", "paternal half sibs")
+  if (!any(Ped$Sex == "Herm"))  {  # quicker, but not accurate with hermaphrodites
+    SibCount <- matrix(NA, 3, 2,
+                       dimnames = list(c("full", "mat", "pat"),
+                                       c("All", "SNPd")))
+    for (x in c("full", "mat", "pat")) {
+      p <- c(full = "ParentPair", mat = "dam", pat = "sire")[[x]]
+      for (a in 1:2) {
+        if (a==1)  tbl <- table(table(Ped[, p]))
+        if (a==2)  tbl <- table(table(PedG[, p]))
+        SibS <- as.numeric(rownames(tbl))
+        SibCount[x, a] <- sum(tbl * SibS * (SibS -1) / 2)
+      }
+    }
+    SibCount[2:3, ] <- sweep(SibCount[2:3, ], 2, SibCount["full", ], "-")
+    rownames(SibCount) <- c("full sibs", "maternal half sib", "paternal half sibs")
+
+  } else {
+    sibcats <- c("FS", "MHS", "PHS", "XHS")
+    SibCount <- matrix(NA, length(sibcats), 2,
+                       dimnames = list(sibcats, c("All", "SNPd")))
+    for (a in 1:2) {
+      if (a==1)  RelA <- GetRelM(Ped, patmat=TRUE, GenBack=1, Return="Array")
+      if (a==2)  RelA <- GetRelM(PedG, patmat=TRUE, GenBack=1, Return="Array")
+      for (x in sibcats) {
+        SibCount[x,a] <- sum(RelA[,,x]) /2   # each pair included 2x in matrix
+      }
+    }
+    rownames(SibCount) <- c("full sibs", "maternal half sib", "paternal half sibs",
+                            "other half sibs")
+  }
+
   dimnames(GPCount)[[1]] <- c("Genotyped", "Dummy", "All")
   dimnames(GPCount)[[2]] <-  c("maternal grandmothers",
                                "maternal grandfathers",
@@ -248,7 +274,8 @@ SummarySeq <- function(SeqList = NULL,
 plot.seq <- function(SeqSum, Pedigree, Panels="all")
 {
   col.damsire <- matrix(c("darkred", "firebrick2", "pink", "lightgrey",
-                         "darkblue", "dodgerblue", "lightblue","lightgrey"), 4,2)
+                         "darkblue", "dodgerblue", "lightblue","lightgrey"), 4,2,
+                        dimnames=list(c("G","D","O","X"), c("Dam", "Sire")))
   AllPanels <- c('G.parents', 'D.parents', 'sibships', 'LLR', 'OH')
   if (Panels[1]=="all") {
     Panels <- AllPanels
@@ -266,7 +293,7 @@ plot.seq <- function(SeqSum, Pedigree, Panels="all")
   N.G <- sum(ParCount.G[1,])
   GPCount <- SeqSum$GPCount["Genotyped",,]
 
-  # genotyped individuals
+  # parents of genotyped individuals
 	if ('G.parents' %in% Panels) {
 		bp <- barplot(t(rbind(ParCount.G,
 													GPCount)[6:1,]), horiz=TRUE, las=1,
@@ -292,7 +319,7 @@ plot.seq <- function(SeqSum, Pedigree, Panels="all")
 					xx <- ifelse(x==1, ParCount.G[p, x]/2,
 											 ParCount.G[p, x]/2 + sum(ParCount.G[p, 1:(x-1)]))
 					text(xx, bp[7-p], colnames(ParCount.G)[x], col=ifelse(x==1, 0, 1),
-							 srt=ifelse(rot, 90, 0), cex=ifelse(rot, 0.8, 1))
+							 srt=ifelse(rot, 45, 0), cex=ifelse(rot, 0.8, 1))
 				}
 			}
 		}
@@ -306,42 +333,58 @@ plot.seq <- function(SeqSum, Pedigree, Panels="all")
 					xx <- ifelse(x==1, GPCount[g, x]/2,
 											 GPCount[g, x]/2 + sum(GPCount[g, 1:(x-1)]))
 					text(xx, rev(bp[1:4])[g], colnames(GPCount)[x], col=ifelse(x==1, 0, 1),
-							 srt=ifelse(rot, 90, 0), cex=ifelse(rot, 0.8, 1))
+							 srt=ifelse(rot, 45, 0), cex=ifelse(rot, 0.8, 1))
 				}
 			}
 		}
 	}
 
   #~~~~~~~~~~~~~~~~~
-  # dummy individuals
-  ParCount.D <- SeqSum$ParentCount["D",1:2,,]
+  # parents of dummy individuals
+  ParCount.D <- SeqSum$ParentCount["D",,,]
+  nDum <- apply(ParCount.D, 1, sum)
+  if (!"Herm" %in% names(nDum))   nDum <- c(nDum, "Herm"=0)
+
   if (sum(ParCount.D)>0 & 'D.parents' %in% Panels) {
-		if ('G.parents' %in% Panels & interactive()) {
-			inp <- readline(prompt = "Press <Enter> to continue to next plot ...")
-		}
-    bp <- barplot(t(rbind(ParCount.D["Female",,],
-                          ParCount.D["Male",,])[4:1,]), horiz=TRUE, las=1, space=c(.2,.2,1,.2),
+    if ('G.parents' %in% Panels & interactive()) {
+      inp <- readline(prompt = "Press <Enter> to continue to next plot ...")
+    }
+
+    PCD.M <- t(rbind(ParCount.D["Male",,], ParCount.D["Female",,]))
+    if (nDum["Herm"] > 0)  PCD.M <- cbind(PCD.M, t(ParCount.D["Herm",,]))
+
+    bp <- barplot(PCD.M, horiz=TRUE, las=1, xpd=FALSE,
+                  space=c(.2,.2, rep(c(1,.2), ifelse(nDum["Herm"]>0, 2, 1))),
                   main="No. parents assigned to \ndummy individuals",
                   xlab = "No. dummy individuals",
-                  names.arg=rep(c("Sire", "Dam"), 2))
-    mtext(c("Dummy females","Dummy males"), side=2, at=c(4.5,1.3), line=3, las=1, cex=1.0)
-    barplot(t(ParCount.D[2:1,"Dam",]), horiz=TRUE, space=c(1.4,2.2), las=1,
-            col=col.damsire[,1], add=TRUE, axes=F,
-            names.arg=rep("",2))
-    barplot(t(ParCount.D[2:1,"Sire",]), horiz=TRUE, space=c(.2,2.2), las=1,
-            col=col.damsire[,2], add=TRUE, axes=F,
-            names.arg=rep("",2))
-    bpM <- matrix(rev(bp),2,2)
+                  names.arg=rep(c("Sire", "Dam"), ifelse(nDum["Herm"]>0, 3, 2)),
+                  ylim = c(0, ifelse(nDum["Herm"]>0, 9.4, 6.2)))
+    mtext(c("Dummy females","Dummy males"),
+          side=2, at=c(4.5,1.3), line=3, las=1, cex=1.0)
+    if (nDum["Herm"]>0)
+      mtext("Dummy\nHermaphrodites", side=2, at=7.7, line=3, las=1, cex=1.0)
+
+    if (nDum["Herm"] > 0) {
+      bpM <- matrix(bp, 2,3,
+                    dimnames = list(c("Sire", "Dam"), c("Male", "Female","Herm")))
+    } else {
+      bpM <- matrix(bp, 2,2,
+                    dimnames = list(c("Sire", "Dam"), c("Male", "Female")))
+    }
     maxN <- max(apply(ParCount.D, 1:2, sum))
-    for (s in 1:2) {
-      for (p in 1:2) {
+    for (s in c("Male", "Female", "Herm")) {
+      if (s=="Herm" & nDum["Herm"]==0)  next
+      for (p in c("Dam", "Sire")) {
+        barplot(as.matrix(ParCount.D[s,p,]), space=bpM[p,s]-0.5, horiz=TRUE,
+                col=col.damsire[,p], las=1, add=TRUE, axes=FALSE, names.arg="")
         for (x in 1:4) {
-          if (ParCount.D[s,p, x]>0) {
+          if (ParCount.D[s,p,x]>0) {
             rot <- ifelse(ParCount.D[s,p, x]/maxN < 0.1, TRUE, FALSE)
             xx <- ifelse(x==1, ParCount.D[s,p, x]/2,
                          ParCount.D[s,p, x]/2 + sum(ParCount.D[s,p, 1:(x-1)]))
-            text(xx, bpM[p,s], colnames(ParCount.G)[x], col=ifelse(x==1, 0, 1),
-                 srt=ifelse(rot, 90, 0), cex=ifelse(rot, 0.8, 1))
+            text(xx, bpM[p,s], colnames(ParCount.G)[x],
+                 col=c(0,1,1,1)[x],
+                 srt=ifelse(rot, 45, 0), cex=ifelse(rot, 0.8, 1))
           }
         }
       }

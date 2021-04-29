@@ -67,8 +67,7 @@ Dataframe \code{ConfProb} has 7 columns:
   sire, in the pedigree inferred based on the simulated data. Coded as
   G=genotyped, D=dummy, X=none}
 \item{dam.conf}{Probability that the dam is correct, given the categories of
-  the assigned dam and sire (ignoring whether or not the sire is correct).
-  Rounded to \code{nchar(N)} significant digits}
+  the assigned dam and sire (ignoring whether or not the sire is correct)}
 \item{sire.conf}{as \code{dam.conf}, for the sire}
 \item{pair.conf}{Probability that both dam and sire are correct, given their
   categories}

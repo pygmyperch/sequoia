@@ -24,8 +24,6 @@ static R_NativePrimitiveArgType psType[] = {
   INTSXP,  // 16 DumBYRF
   REALSXP, // 17 TotLL
 	REALSXP, // 18 AP_OUT
-  INTSXP,  // 19 DumPairs 
-  REALSXP, // 20 DumPairLL
 };
 
 static R_NativePrimitiveArgType dupType[] = {
@@ -74,7 +72,6 @@ static R_NativePrimitiveArgType pedLLRType[] = {
   INTSXP,  // 3 SpecsIntMkPed
   REALSXP, // 4 SpecsDbl
   REALSXP, // 5 ErrV
-  INTSXP,  // 6 returngenoP
   INTSXP,  // 7 GenoFR
   INTSXP,  // 8 Sex
 	INTSXP,  // 9 BY
@@ -86,7 +83,6 @@ static R_NativePrimitiveArgType pedLLRType[] = {
 	INTSXP,  // 15 dumparrf
 	REALSXP, // 16 dumLRrf
 	INTSXP,  // 17 dumbyrf
-  REALSXP, // 18 genoProb
 };
 
 static R_NativePrimitiveArgType pairLLType[] = {
@@ -111,6 +107,17 @@ static R_NativePrimitiveArgType pairLLType[] = {
 	REALSXP, // 19 dLRF
 };
 
+static R_NativePrimitiveArgType BYprobType[] = {
+  INTSXP,  // 1 Ng
+  INTSXP,  // 2 Nx
+  INTSXP,  // 3 nAP
+  INTSXP,  // 4 nYearsIn
+	INTSXP,  // 5 BY
+	REALSXP, // 6 AP
+	INTSXP,  // 7 parentsRF
+	REALSXP, // 8 byprobv
+};
+
 static R_NativePrimitiveArgType eType[] = {
   INTSXP,
   INTSXP,
@@ -122,8 +129,7 @@ static R_NativePrimitiveArgType eType[] = {
 extern void F77_NAME(makeped)(int *ng, int *specsintglb, int *specsintmkped, 
   double *specsdbl, double *errv, int *genofr, int *sexrf, int *byrf, 
 	double *aprf, int *parentsrf, double *lrrf, int *ohrf, 
-	int *nd, int *dumparrf, double *dumlrrf, int *dumbyrf, double *totll, 
-  double *apout, int *dumpairs, double *dumpairll);
+	int *nd, int *dumparrf, double *dumlrrf, int *dumbyrf, double *totll, double *apout);
   
 extern void F77_NAME(duplicates)(int *ng, int *specsint, double *specsdbl, 
 	double *errv, int *genofr, int *sexrf, int *byrf, double *aprf, 
@@ -135,14 +141,17 @@ extern void F77_NAME(findambig)(int *ng, int *specsint, int *specsintamb, double
 	int *ntrio, int *trioids, double *triolr, int *triooh);
 
 extern void F77_NAME(getpedllr)(int *ng, int *specsint, int *specsintmkped, 
-  double *specsdbl, double *errv, int *returngenop, int *genofr, int *sexrf, int *byrf, 
+  double *specsdbl, double *errv, int *genofr, int *sexrf, int *byrf, 
   double *aprf, int *parentsrf, int *ohrf, double *lrrf, int *snpdboth, int *dumparrf, 
-  double *dumlrrf, int *dumbyrf, double *genoa);
+  double *dumlrrf, int *dumbyrf);
   
 extern void F77_NAME(getpairll)(int *ng, int *np, int *specsint, double *specsdbl, 
   double *errv, int *genofr, int *byrf, double *aprf, 
   int *pairids, int *pairsex, int *pairagediff, int *pairfocal, int *pairk,
   int *dropp, int *parentsrf, int *dumparrf, double *llrf, int *toprf, double *dlrf);
+  
+extern void F77_NAME(getbyprobs)(int *ng, int *nx, int *nap, int *nyearsin, int *byrf, 
+  double *aprf, int *parentsrf, double *byprobv);
 	
 extern void F77_NAME(deallocall)();
 
@@ -151,11 +160,12 @@ extern void F77_NAME(mkerrors)(int *nind, int *nsnp, int *genofr, double *eprobf
 
 
 static const R_FortranMethodDef FortranEntries[] = {
-	{"makeped", (DL_FUNC) &F77_NAME(makeped), 20, psType},
+	{"makeped", (DL_FUNC) &F77_NAME(makeped), 18, psType},
 	{"duplicates", (DL_FUNC) &F77_NAME(duplicates), 13, dupType},
   {"findambig", (DL_FUNC) &F77_NAME(findambig), 20, ambigType},
-	{"getpedllr", (DL_FUNC) &F77_NAME(getpedllr), 18, pedLLRType},
+	{"getpedllr", (DL_FUNC) &F77_NAME(getpedllr), 16, pedLLRType},
   {"getpairll", (DL_FUNC) &F77_NAME(getpairll), 19, pairLLType},
+  {"getbyprobs", (DL_FUNC) &F77_NAME(getbyprobs), 8, BYprobType},
   {"deallocall", (DL_FUNC) &F77_NAME(deallocall), 0},
 	{"mkerrors", (DL_FUNC) &F77_NAME(mkerrors), 4, eType},
   {NULL, NULL, 0, NULL}

@@ -21,5 +21,5 @@ A vector with the generation number for each individual, starting at
 }
 \description{
 For each individual in a pedigree, count the number of
-  generations since the most distant pedigree founder.
+  generations since its most distant pedigree founder.
 }

@@ -58,14 +58,15 @@ parent is AA and offspring is aa) Mendelian errors (ME, e.g. parents AA and
 aa, but offspring not Aa) in parent-parent-offspring trios, and OH cases for
 offspring with a single genotyped parent.
 
-The estimated error rates will not be as accurate as from duplicate samples,
-since a single error in an individual with many offspring will be counted
-many times, while errors in individuals without parents or offspring will not
-be counted at all. Moreover, a high error rate may interfere with pedigree
-reconstruction, and successful assignment will be biased towards parents with
-lower error count. Nonetheless, it will provide a ballpark estimate for the
-average error rate, which will be useful for subsequent (rerun of) pedigree
-reconstruction.
+The estimated error rates will not be as accurate as from duplicate samples.
+A single error in an individual with many offspring will be counted as many
+times, potentially resulting in non-sensical values of 'Err.hat' close to 1.
+On the other hand, errors in individuals without parents or offspring will
+not be counted at all. Moreover, a high error rate may interfere with
+pedigree reconstruction, and successful assignment will be biased towards
+parents with lower error count. Nonetheless, it may provide a ballpark
+estimate for the average error rate, which can be useful for subsequent
+(rerun of) pedigree reconstruction.
 }
 
 \examples{

@@ -89,8 +89,7 @@
 #'   sire, in the pedigree inferred based on the simulated data. Coded as
 #'   G=genotyped, D=dummy, X=none}
 #' \item{dam.conf}{Probability that the dam is correct, given the categories of
-#'   the assigned dam and sire (ignoring whether or not the sire is correct).
-#'   Rounded to \code{nchar(N)} significant digits}
+#'   the assigned dam and sire (ignoring whether or not the sire is correct)}
 #' \item{sire.conf}{as \code{dam.conf}, for the sire}
 #' \item{pair.conf}{Probability that both dam and sire are correct, given their
 #'   categories}
@@ -423,7 +422,7 @@ ArrToDF <- function(A.P, A.N, PS) {
     DF[,x] <- factor(DF[,x], levels=c("G", "D", "X"))
   }
   for (x in 4:6) {
-    DF[,x] <- signif(DF[,x], digits = nchar(DF$N))
+    DF[,x] <- signif(DF[,x], digits = max(nchar(DF$N)))
   }
   DF <- DF[order(DF[,1], DF[,2], DF[,3]), ]
   rownames(DF) <- 1:nrow(DF)

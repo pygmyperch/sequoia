@@ -57,7 +57,7 @@
 #'   parameter \code{Pedigree=NULL}, \code{SeqList$Pedigree} will be used if
 #'   present, and \code{SeqList$PedigreePar} otherwise. If \code{SeqList$Specs}
 #'   is present, input parameters with the same name as its items are ignored.
-#'   The list elements `LifeHist', `AgePriors', and `ErrM' are also used if
+#'   The list elements 'LifeHist', 'AgePriors', and 'ErrM' are also used if
 #'   present, and override the corresponding input parameters.
 #' @param Plot logical, display scatter plots by \code{\link{PlotPairLL}}.
 #' @inheritParams CalcOHLLR

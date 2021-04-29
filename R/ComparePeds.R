@@ -16,14 +16,17 @@
 #'   intersect between the IDs in Pedigrees 1 and 2 is taken as the vector of
 #'   genotyped individuals.
 #'
-#' @param  Ped1 original pedigree, dataframe with columns id-dam-sire; only the
-#'   first 3 columns will be used.
-#' @param  Ped2 inferred pedigree, e.g. \code{SeqOUT$Pedigree} or
+#' @param  Ped1 first (e.g. original) pedigree, dataframe with columns
+#'   id-dam-sire; only the first 3 columns will be used.
+#' @param  Ped2 second pedigree, e.g. newly inferred \code{SeqOUT$Pedigree} or
 #'   \code{SeqOUT$PedigreePar}, with columns id-dam-sire.
-#' @param  DumPrefix  character vector of length 2 with the dummy prefixes in
-#'   Pedigree 2; all IDs not starting with the Dummy prefix are taken as
-#'   genotyped if \code{SNPd=NULL}.
-#' @param SNPd character vector with IDs of genotyped individuals.
+#' @param  DumPrefix  character vector with the prefixes identifying dummy
+#'   individuals in \code{Ped2}. Use 'F0' ('M0') to avoid matching to regular
+#'   individuals with IDs starting with 'F' ('M'), provided \code{Ped2} has
+#'   fewer than 999 dummy females (males).
+#' @param SNPd character vector with IDs of genotyped individuals. If
+#'   \code{NULL}, defaults to the IDs occurring in both \code{Ped1} and
+#'   \code{Ped2} and not starting with any of the prefixes in \code{DumPrefix}.
 #' @param Symmetrical  when determining the category of individuals
 #'   (Genotyped/Dummy/X), use the 'highest' category across the two pedigrees
 #'   (\code{TRUE}, default) or only consider \code{Ped1} (\code{Symmetrical =
@@ -206,9 +209,9 @@ PedCompare <- function(Ped1 = NULL,
   if (is.null(SNPd)) {
     SNPd <- intersect(Ped2$id, Ped1$id)
     if (!is.null(DumPrefix)) {
-      DPnc <- nchar(DumPrefix)
-      SNPd <- SNPd[substr(SNPd,1,DPnc[1])!=DumPrefix[1] &
-                        substr(SNPd,1,DPnc[2])!=DumPrefix[2]]
+      for (x in seq_along(DumPrefix)) {
+        SNPd <- SNPd[substr(SNPd,1,nchar(DumPrefix[x])) != DumPrefix[x] ]
+      }
     }
   }
   if (sum(SNPd %in% Ped2$id)==0)  stop("none of 'SNPd' in Ped2")

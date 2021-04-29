@@ -75,6 +75,12 @@ A genotype matrix in the specified output format. If 'OutFile' is
 Convert genotype data in various formats to sequoia's
   1-column-per-marker format or Colony's 2-columns-per-marker format.
 }
+\details{
+The first two arguments are interchangeable, and can be given
+  unnamed. The first argument is assumed to be a file name if it is of class
+  'character' and length 1, and to be the genetic data if it is a matrix or
+  dataframe.
+}
 \section{Input formats}{
 
 The following formats can be specified by \code{InFormat}:

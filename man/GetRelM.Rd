@@ -47,7 +47,7 @@ If \code{Return='Matrix'}, an N x N square matrix, with N equal to
    \item{FS}{Full sibling}
    \item{MHS}{Maternal half-sibling}
    \item{PHS}{Paternal half-sibling}
-   \item{XHS}{'cross' half-sibling (hermaphrodites)}
+   \item{XHS}{other half-sibling (hermaphrodites)}
    \item{HS}{half-sibling (\code{patmat=FALSE})}
    \item{MGM}{Maternal grandmother}
    \item{MGF}{Maternal grandfather}

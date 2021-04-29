@@ -14,7 +14,8 @@ NumToID(x, k = 0, gID = NULL, DumPrefix = c("F", "M"))
 \item{gID}{vector with IDs of SNP-genotyped individuals; rownames of
 genotype matrix in the exact order.}
 
-\item{DumPrefix}{length-2 character vector to make dummy IDs.}
+\item{DumPrefix}{length-2 character vector to make dummy IDs; length-3 in
+case of hermaphrodites.}
 }
 \value{
 A character vector with IDs.

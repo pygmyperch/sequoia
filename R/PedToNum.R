@@ -13,7 +13,7 @@
 #' @param gID  vector with IDs of SNP-genotyped individuals.
 #' @param DoDummies  'new', 'old', or 'no' (ignore all non-genotyped
 #'   individuals).
-#' @param DumPrefx Prefix used to identify dummies when \code{DoDummies = 'old'}
+#' @param DumPrefix Prefix to identify dummies when \code{DoDummies = 'old'}
 #'
 #' @return a list with
 #'   \item{PedPar}{An nInd x 2 matrix with the numeric IDs of parents of
@@ -52,6 +52,8 @@ PedToNum <- function(Pedigree = NULL,
                                  sire = NA))
   }
   if (is.null(gID))  stop("Please provide 'gID'")
+  if (length(DumPrefix) > 2 & DoDummies=="old" & !all(Pedigree$id %in% gID))
+    warning(">2 DumPrefixes not supported by PedToNum", immediate.=TRUE)
 
   if (!DoDummies %in% c("old", "new", "no"))
     stop("'DoDummies' must be 'old', 'new', or 'no'")
@@ -144,7 +146,7 @@ getGDO <- function(id, gID = NULL, DumPrefix = c("F0", "M0"))
                 ifelse(id %in% gID,  "Genotyped",
                        NA))
   if (!is.null(DumPrefix)) {
-    for (p in 1:2) {
+    for (p in seq_along(DumPrefix)) {
       GDO[substr(id,1,nchar(DumPrefix[p])) == DumPrefix[p]] <- "Dummy"
     }
   }
@@ -210,7 +212,8 @@ FoldSibGPs <- function(PedNum, Ng, Nd)
 #' @param k 1=dam, 2=sire, needed to distinguish dummy females from dummy males.
 #' @param gID  vector with IDs of SNP-genotyped individuals; rownames of
 #'   genotype matrix in the exact order.
-#' @param DumPrefix length-2 character vector to make dummy IDs.
+#' @param DumPrefix length-2 character vector to make dummy IDs; length-3 in
+#'   case of hermaphrodites.
 #'
 #' @return A character vector with IDs.
 #'
@@ -219,23 +222,29 @@ FoldSibGPs <- function(PedNum, Ng, Nd)
 NumToID <- function(x, k=0, gID=NULL, DumPrefix = c("F", "M"))
 {
   if (length(x)==0)  return()
-  if (any(is.na(x) | !is.wholenumber(x)))  stop("x must be whole numbers, something went wrong")
-  Nd.k <- ifelse(all(x >= 0), 0, abs(min(x, na.rm=TRUE)))
+  if (any(is.na(x) | !is.wholenumber(x)))
+    stop("x must be whole numbers, something went wrong")
+  xv <- x
+  xv[xv < -1e6] <- xv[xv < -1e6] + 1e6    # hermaphrodite dummy clones
+  Nd.k <- ifelse(all(xv >= 0), 0, abs(min(xv, na.rm=TRUE)))
 
   if (Nd.k > 9999)  stop("\nMore than 9999 dummies! Cannot parse output.")
   if (Nd.k > 999 && any(nchar(DumPrefix)==1))
     warning("\nMore than 999 dummies! Please use DummyPrefix of >1 character to avoid ambiguity",
-            immediate. = TRUE)  # stop or warning?
+            immediate. = TRUE)
 
   if (length(k)==1)  k <- rep(k, length(x))
   if (!all(k[x<0] %in% 1:2))  stop("Invalid k")
 
   ID <- sapply(seq_along(x), function(i) {
     ifelse(x[i] > 0,
-           gID[x[i]],
-           ifelse(x[i] < 0,
-                  paste0(DumPrefix[k[i]], formatC(-x[i], width=4, flag=0)),
-                  NA))
+        gID[x[i]],
+        ifelse(x[i] < -1e6,
+            paste0(DumPrefix[3], formatC(- (x[i] + 1e6), width=4, flag=0)),
+            ifelse(x[i] < 0,
+                paste0(DumPrefix[k[i]], formatC(-x[i], width=4, flag=0)),
+                NA)))
+
   })
   return( ID )
 }

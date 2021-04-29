@@ -79,9 +79,7 @@ SeqParSib <- function(ParSib,
                   dumlrrf = double(3*Ng),
                   dumbyrf = integer(3*Ng),
                   totll = double(42),
-                  apout = double((3*MaxMaxAgePO)*5*3),
-                  dumpairs = integer(Ng),  # hermaphrodites only
-                  dumpairll = double((Ng/2)*3) )
+                  apout = double((3*MaxMaxAgePO)*5*3))
   #                  PACKAGE = "sequoia")
 
   TMP$lrrf[abs(TMP$lrrf - 999) < 0.1] <- NA
@@ -115,6 +113,13 @@ SeqParSib <- function(ParSib,
                          Sex = rep(1:2, TMP$nd),
                          stringsAsFactors=FALSE)
     names(DumPed) <- PedColNames
+
+    if (any(NumPed$dam < -1e6)) {   # hermaphrodite dummies
+      IsHermDumDam <- with(DumPed, id %in% (NumPed$dam + 1e6) & Sex==1)
+      DumPed$id[IsHermDumDam] <- DumPed$id[IsHermDumDam] - 1e6
+      IsHermDumSire <- with(DumPed, (!id %in% NumPed$sire) & Sex==2)
+      DumPed <- DumPed[!IsHermDumSire, ]
+    }
     NumPed <- rbind(NumPed, DumPed)
   }
 
@@ -122,7 +127,6 @@ SeqParSib <- function(ParSib,
   Pedigree <- NumPed
   Pedigree[,"id"] <- NumToID(Pedigree[,"id"], k = Pedigree[,"Sex"], gID, DumPfx)
   for (k in 1:2) Pedigree[, k+1] <- NumToID(Pedigree[, k+1], k, gID, DumPfx)
-
 
   #=========================
   # all info for each dummy
@@ -136,11 +140,18 @@ SeqParSib <- function(ParSib,
     OffIDs <- OffIDs[c(names(NumOff[[1]]), names(NumOff[[2]]))]
     # includes dummy offspring
 
-    DummyIDs <- cbind(Pedigree[NumPed$id<0, PedColNames[c(1:6,10)]],
+    DummyIDs <- plyr::join(data.frame(id = c(names(NumOff[["mat"]]),
+                                             names(NumOff[["pat"]])),
+                                      stringsAsFactors=FALSE),
+                           Pedigree[, c("id", "dam", "sire")],
+                           by="id")
+    DummyIDs <- cbind(DummyIDs,
+                      Sex = rep(1:2, times=TMP$nd),
                       VtoM(TMP$dumbyrf, sum(TMP$nd),3, NgOdd),
                       unlist(NumOff),
-                      laply(OffIDs, .fun = function(x) x[1:MaxOff], .drop=FALSE))
-    names(DummyIDs)[8:ncol(DummyIDs)] <- c("BY.est", "BY.lo", "BY.hi", "NumOff",
+                      laply(OffIDs, .fun = function(x) x[1:MaxOff], .drop=FALSE),
+                      row.names=NULL)
+    names(DummyIDs)[5:ncol(DummyIDs)] <- c("BY.est", "BY.lo", "BY.hi", "NumOff",
                                            paste0("O", 1:MaxOff))
   } else  DummyIDs <- NULL
 
@@ -163,17 +174,6 @@ SeqParSib <- function(ParSib,
     APM <- round(APM[1:MaxRow, ], 3)
   }
 
-  #=========================
-  if (FortPARAM$SpecsInt[["Herm"]] > 0 & ParSib == "sib" && any(TMP$nd>0)) {
-    if (any(TMP$dumpairs != 0)) {
-      DummyClones <- data.frame(XtoM(TMP$dumpairs, nc=2, Ng_odd=NgOdd),
-                                XtoM(TMP$dumpairll, nc=3, Ng_odd=NgOdd))
-      DummyClones <- DummyClones[DummyClones[,1] != 0, ]
-      for (k in 1:2) DummyClones[, k] <- NumToID(DummyClones[, k], k, gID, DumPfx)
-      names(DummyClones) <- c("Female", "Male", "LL_clone", "LL_FS", "LL_U")
-
-    } else  DummyClones <- NULL
-  } else  DummyClones <- NULL
 
   #=========================
   # update lifehist w. inferred sex & estimated birth year
@@ -210,8 +210,7 @@ SeqParSib <- function(ParSib,
                 DummyIDs = DummyIDs,
                 TotLikSib = TMP$totll[s(sum(TMP$totll!=0))],
                 AgePriorExtra = APM,
-                LifeHistSib = LhOUT,
-                DummyClones = DummyClones)
+                LifeHistSib = LhOUT)
   }
   return(OUT[!sapply(OUT, is.null)])
 }

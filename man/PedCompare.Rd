@@ -15,17 +15,20 @@ PedCompare(
 )
 }
 \arguments{
-\item{Ped1}{original pedigree, dataframe with columns id-dam-sire; only the
-first 3 columns will be used.}
+\item{Ped1}{first (e.g. original) pedigree, dataframe with columns
+id-dam-sire; only the first 3 columns will be used.}
 
-\item{Ped2}{inferred pedigree, e.g. \code{SeqOUT$Pedigree} or
+\item{Ped2}{second pedigree, e.g. newly inferred \code{SeqOUT$Pedigree} or
 \code{SeqOUT$PedigreePar}, with columns id-dam-sire.}
 
-\item{DumPrefix}{character vector of length 2 with the dummy prefixes in
-Pedigree 2; all IDs not starting with the Dummy prefix are taken as
-genotyped if \code{SNPd=NULL}.}
+\item{DumPrefix}{character vector with the prefixes identifying dummy
+individuals in \code{Ped2}. Use 'F0' ('M0') to avoid matching to regular
+individuals with IDs starting with 'F' ('M'), provided \code{Ped2} has
+fewer than 999 dummy females (males).}
 
-\item{SNPd}{character vector with IDs of genotyped individuals.}
+\item{SNPd}{character vector with IDs of genotyped individuals. If
+\code{NULL}, defaults to the IDs occurring in both \code{Ped1} and
+\code{Ped2} and not starting with any of the prefixes in \code{DumPrefix}.}
 
 \item{Symmetrical}{when determining the category of individuals
 (Genotyped/Dummy/X), use the 'highest' category across the two pedigrees

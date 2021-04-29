@@ -40,6 +40,11 @@
 #'   inside R. When converting to 0/1/2 format, 2 is the homozygote for the
 #'   minor allele, and 0 the homozygote for the major allele.
 #'
+#' @details The first two arguments are interchangeable, and can be given
+#'   unnamed. The first argument is assumed to be a file name if it is of class
+#'   'character' and length 1, and to be the genetic data if it is a matrix or
+#'   dataframe.
+#'
 #'
 #' @section Input formats:
 #' The following formats can be specified by \code{InFormat}:
@@ -128,13 +133,18 @@ GenoConvert <- function(InData = NULL,
 
   } else if (!is.null(InFile) & !is.null(InData)) {
     stop("please provide either 'InFile' or 'InData', not both")
+  }
+  if (length(InData)==1 & class(InData)=="character") {
+    InFile <- InData
+    InData <- NULL
+  } else if (is.matrix(InFile) | is.data.frame(InFile)) {
+    InData <- InFile
+    InFile <- NULL
+  }
 
-  } else if (!is.null(InFile)) {
+  if (!is.null(InFile)) {
     if (is.character(InFile)) {
       if (!file.exists(InFile)) stop("cannot find 'InFile'")
-    } else if (is.matrix(InFile) | is.data.frame(InFile)) {
-      InData <- InFile
-      InFile <- NULL
     } else {
       stop("'InFile' in unknown format, should be character string.")
     }

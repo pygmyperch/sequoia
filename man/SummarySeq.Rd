@@ -22,13 +22,15 @@ sire. Column names are ignored, as are additional columns.}
 
 \item{DumPrefix}{character vector of length 2 with prefixes for dummy dams
 (mothers) and sires (fathers). Will be read from \code{SeqList}'s 'Specs'
-if provided. Used to distinguish between dummies and non-dummies.}
+if provided. Used to distinguish between dummies and non-dummies. Length 3
+in case of hermaphrodites.}
 
 \item{SNPd}{character vector with ids of SNP genotyped individuals. Only when
 \code{Pedigree} is provided instead of \code{SeqList}, then used to distinguish
 between genetically assigned parents and 'observed' parents (e.g. observed
-in the field, or assigned previously using microsatellites). Will be read
-from \code{SeqList}'s 'PedigreePar' if provided.}
+in the field, or assigned previously using microsatellites). If
+\code{SeqList}'s 'PedigreePar' is provided, all ids in that dataframe will
+be presumed genotyped.}
 
 \item{Plot}{show barplots and histograms of the results, as well as of the
 parental LLRs, Mendelian errors, and agepriors, if present.}

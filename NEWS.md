@@ -1,3 +1,22 @@
+# sequoia 2.3.1
+
+### New features & major changes
+- Hermaphrodites: dummy individuals with offspring as both dam and as sire now 
+have prefix 'H'; closer links between the two 'clonal' sibship parts during pedigree reconstruction for improved performance
+- Assignment of sibship grandparents moved to before check & assignment of additional parents; this proved to increase correct assignments without increasing incorrect assignments. 
+- new function `CalcBYprobs()` to estimate the probability that individual i is born in year y. 
+
+
+
+### Minor changes
+- various edits to Fortran code improving general performance. 
+
+
+### Bug fixes
+- fixed inconsistent rounding in `EstConf()` output
+- bug in `GenoConvert()` regarding InData vs InFile
+
+
 # sequoia 2.3.0
 
 ### Major bug fixes
@@ -15,6 +34,8 @@
 ### New features & major changes
 - hermaphrodites: re-implemented and greatly improved sibship clustering. Specification of hermaphrodite vs diocious is now separate input parameter `Herm` instead of specified via `Complex`. New output list element `DummyClones`
 - improved performance when a large proportion of birth years are missing
+- new function `CalcRped()` to calculate pedigree relatedness. Uses package `kinship2`. 
+
 
 ### Bug fixes
 Various smaller bugs have been fixed, some affecting assignment rate
