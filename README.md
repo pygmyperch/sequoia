@@ -21,7 +21,7 @@ remotes::install_github("JiscaH/sequoia", ref="stable")
 
 This package requires compilation, as the bulk of the algorithm is written in Fortran. A pre-compiled .zip binary file (for Windows and the current R version only) can be found in [sequoia_archives](https://github.com/JiscaH/sequoia_archives) , as well as .tar.gz source archives. You can download these to your hard drive, and then install using
 ```
-install.packages("C:/file/to/path/sequoia_1.1.1.zip",  repos = NULL)`
+install.packages("C:/file/to/path/sequoia_2.3.3.zip",  repos = NULL)`
 ```
 (sometimes you need to turn R off & on before it works). 
 
