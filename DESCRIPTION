@@ -1,8 +1,8 @@
 Package: sequoia
 Type: Package
 Title: Pedigree Inference from SNPs
-Version: 2.3.2
-Date: 2021-04-29
+Version: 2.3.3
+Date: 2021-04-30
 Authors@R: person("Jisca", "Huisman", email = "jisca.huisman@gmail.com",
     role = c("aut", "cre"))
 Author: Jisca Huisman [aut, cre]
