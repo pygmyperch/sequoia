@@ -1,3 +1,9 @@
+# sequoia 2.3.3
+fixes minor bugs identified by CRAN valgrind and gcc-ASAN
+
+# sequoia 2.3.2
+minor edits to vignette to comply with CRAN precheck
+
 # sequoia 2.3.1
 
 ### New features & major changes
