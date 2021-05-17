@@ -1,3 +1,8 @@
+# sequoia 2.3.4
+- fixes bug in `CalcPairLL()` HS likelihood when conditioning on pedigree was incorrect. No/minimal effect on pedigree reconstruction.
+- fixes bug in `DuplicateCheck()` (always automatically called by `sequoia()`) that on very rare occasions caused R to crash
+
+
 # sequoia 2.3.3
 fixes minor bugs identified by CRAN valgrind and gcc-ASAN
 
