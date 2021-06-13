@@ -1,5 +1,7 @@
 # sequoia
 
+For the website, go to: https://jiscah.github.io/
+
 ## General
 Sequoia reconstructs multi-generational pedigrees from SNP data, as described in `Pedigree reconstruction using SNP data: parentage assignment, sibship clustering, and beyond` ( http://onlinelibrary.wiley.com/doi/10.1111/1755-0998.12665/full ). It performs parentage assignment (parent genotyped) and sibship clustering (parent not genotyped), as well as grandparent assignment to link sibship clusters to the rest of the pedigree. 
 
