@@ -115,7 +115,6 @@
 #'   of pedigree reconstruction performance.
 #'
 #' @examples
-#' data(Ped_HSg5)
 #' GenoM <- SimGeno(Pedigree = Ped_HSg5, nSnp = 100, ParMis = c(0.2, 0.7))
 #'
 #' \dontrun{
@@ -276,9 +275,15 @@ SimGeno <- function(Pedigree,
 
     # inheritance patterns
     if (is.na(InheritFile) | is.null(InheritFile)) {
+<<<<<<< Updated upstream
       utils::data(Inherit)
       INHA <- Inherit
       rm(Inherit)
+=======
+      Inherit_patterns <- NULL
+      utils::data(Inherit_patterns, package='sequoia')
+      INHA <- Inherit_patterns
+>>>>>>> Stashed changes
     } else {
       INHA <- ReadSpecialInherit(InheritFile, quiet)  # array: inherit - off sex - geno off - dam - sire
     }
@@ -415,7 +420,6 @@ SimGeno <- function(Pedigree,
 #'   set to missing (-9).
 #'
 #' @examples
-#' data(Ped_HSg5)
 #' GenoM <- SimGeno(Ped = Ped_HSg5, nSnp = 100, ParMis = 0.2,
 #'                  SnpError=0, CallRate=1)
 #' GenoM.actual <- GenoM

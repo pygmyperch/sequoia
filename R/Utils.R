@@ -1,5 +1,5 @@
 #======================================================================
-# Miscelaneous functions
+# Miscelaneous functions (and a data vector)
 #======================================================================
 
 
@@ -47,6 +47,7 @@ FacToNum <- function(x) as.numeric(as.character(x))
 
 
 #======================================================================
+<<<<<<< Updated upstream
 # add GP columns to pedigree ----
 GPcols <- function(Ped) {
   IDorder <- Ped$id   # merge() ignores sort=FALSE
@@ -71,6 +72,8 @@ inflate <- function(M, IDnew) {
 
 
 #======================================================================
+=======
+>>>>>>> Stashed changes
 # function adapted from Examples from integer {base}
 is.wholenumber <- function(x, tol = .Machine$double.eps^0.5) {
   ifelse(!is.numeric(x) | !is.finite(x),
@@ -146,6 +149,15 @@ namedlist <- function(...) {
   return( L )
 }
 
+
+#======================================================================
+# priority of relationships (close -> distant)
+# used by GetRelM() & ComparePairs()
+RelRank <- c("S", "M", "P", "MP", "O", "PO?",
+               "FS","FS?", "MHS", "PHS", "HS", "HS?",
+               "MGM", "MGF", "PGM", "PGF", "GP", "GO","GP?",
+               "FA", "FN", "FA?", "2nd?", "HA", "HN","HA?",
+               "DFC1", "FC1", "XX?", "Q?", "U", "X")
 
 #======================================================================
 # simpleCap ----

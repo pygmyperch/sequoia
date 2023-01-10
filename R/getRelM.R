@@ -4,16 +4,33 @@
 #'   from a pedigree or dataframe with pairs.
 #'
 #' @param Pedigree  dataframe with columns id - dam - sire.
-#' @param Pairs  dataframe with columns ID1 - ID2 - Rel.
+#' @param Pairs  dataframe with columns ID1 - ID2 - Rel, e.g. as returned by
+#'   \code{\link{GetMaybeRel}}. Combining \code{Pedigree} and \code{Pairs} works
+#'   best if the relationships are coded as listed below.
 #' @param GenBack  number of generations back to consider; 1 returns
 #'   parent-offspring and sibling relationships, 2 also returns grand-parental,
 #'   avuncular and first cousins.
 #' @param patmat  logical, distinguish between paternal versus maternal relative
 #'   pairs? For avuncular pairs, the distinction is never made.
+<<<<<<< Updated upstream
 #' @param Return  'Matrix' or 'Array'. The former returns an N x N matrix with
 #'   the closest relationship between each pair, the latter an N x N x R array
 #'   with for each of the R considered relationships whether it exists between
 #'   the pair (1) or not (0). See Details below.
+=======
+#' @param Return  'Matrix', 'Array', or 'List'. 'Matrix' returns an N x N matrix
+#'   with the closest relationship between each pair. 'Array' returns an N x N x
+#'   R array with for each of the R considered relationships whether it exists
+#'   between the pair (1) or not (0). See Details below. 'List' returns a list
+#'   with for each of the R considered relationships a 2-column matrix with the
+#'   IDs of the pairs having such a relationship. The size of the list (in Mb)
+#'   is much smaller than for the matrix or array, and this is therefore the
+#'   only format suitable for pedigrees with many thousands of individuals. If
+#'   \code{Pairs} is specified, the only possible return type is 'Matrix'.
+#' @param Pairs_suffix  symbol added to the relationship abbreviations derived
+#'   from \code{Pairs}, when both \code{Pedigree} and \code{Pairs} are
+#'   provided. Can be an empty string.
+>>>>>>> Stashed changes
 #'
 #' @return  If \code{Return='Matrix'}, an N x N square matrix, with N equal to
 #'   the number of rows in \code{Pedigree} (after running
@@ -66,9 +83,8 @@
 #'   between two pedigrees; \code{\link{PlotRelPairs}}.
 #'
 #' @examples
-#' data(Ped_griffin)
 #' Rel.griffin <- GetRelM(Ped_griffin, patmat=TRUE, GenBack=2)
-#' table(c(Rel.griffin))
+#' table(as.vector(Rel.griffin))
 #' # turning matrix into vector first makes table() much faster
 #' PlotRelPairs(Rel.griffin)
 #'
@@ -78,14 +94,26 @@ GetRelM <- function(Pedigree = NULL,
                     Pairs = NULL,
                     GenBack = 1,
                     patmat = FALSE,
-                    Return = "Matrix")
+                    Return = "Matrix",
+                    Pairs_suffix = '?')
 {
-  if (!is.null(Pedigree) & !is.null(Pairs))
-    stop("Please provide Pedigree or Pairs, not both")
-  if (is.null(Pedigree) & is.null(Pairs))
-    stop("Please provide Pedigree or Pairs")
+  if (is.null(Pedigree) & is.null(Pairs))  stop("Please provide Pedigree or Pairs")
+  if (!(Return %in% c("Matrix", "Array", "List")))  stop("Return must be 'Matrix', 'Array', or 'List'")
+  if (!is.null(Pairs)) {
+    if (Return != "Matrix")  stop("When providing Pairs, Return must be 'Matrix'")
+    if (!class(Pairs) %in% c("data.frame", "matrix"))  stop("Pairs should be a dataframe or matrix")
+  }
+
+  # function inflate square matrix to larger square matrix with more IDs
+  inflate <- function(M, IDnew, na=NA) {
+    Mnew <- matrix(na, length(IDnew), length(IDnew), dimnames=list(IDnew, IDnew))
+    if (is.null(rownames(M)) & nrow(M)==ncol(M))  rownames(M) <- colnames(M)
+    Mnew[rownames(M), colnames(M)] <- M
+    Mnew
+  }
 
   if (!is.null(Pedigree)) {
+<<<<<<< Updated upstream
     if (!(Return %in% c("Matrix", "Array")))   stop("Return must be 'Matrix' or 'Array'")
     Pedigree <- PedPolish(Pedigree, ZeroToNA=TRUE, NullOK=FALSE)
     if (GenBack==2) {
@@ -97,22 +125,25 @@ GetRelM <- function(Pedigree = NULL,
     }
   }
     RelA <- GetRelA(Pedigree, GenBack = GenBack, patmat = patmat)
+=======
+    Pedigree <- PedPolish(Pedigree, ZeroToNA=TRUE, NullOK=FALSE)
+    RelA <- GetRelA(Pedigree, GenBack = GenBack, patmat = patmat, List = (Return == 'List'))
+>>>>>>> Stashed changes
 
     if (Return == "Matrix" ) {
       rel.i <- which(RelA == 1, arr.ind=TRUE)
       rel.i <- rel.i[!duplicated(rel.i[,1:2]), ]  # 'highest' relationship only per pair
       RelNames <- dimnames(RelA)[[3]]
-      RelM <- matrix("U", dim(RelA)[1], dim(RelA)[2], dimnames = list(Pedigree$id, Pedigree$id))
-      RelM[rel.i[,1:2]] <- RelNames[rel.i[,3]]
-      return( RelM )
+      RelM.ped <- matrix("U", dim(RelA)[1], dim(RelA)[2],
+                         dimnames = list(Pedigree$id, Pedigree$id))
+      RelM.ped[rel.i[,1:2]] <- RelNames[rel.i[,3]]
+      if (is.null(Pairs))  return( RelM.ped )
     } else {
       return( RelA )
     }
+  }
 
-  } else if (!is.null(Pairs)) {
-    if (Return != "Matrix")   stop("When providing Pairs, Return must be 'Matrix'")
-    if (!class(Pairs) %in% c("data.frame", "matrix"))
-      stop("Pairs should be a dataframe or matrix")
+  if (!is.null(Pairs)) {
     Pairs <- as.data.frame(Pairs)
     names(Pairs)[1:3] <- c("ID1", "ID2", "Rel")
     for (x in 1:3)  Pairs[,x] <- as.character(Pairs[,x])
@@ -125,17 +156,40 @@ GetRelM <- function(Pedigree = NULL,
     if(any(RelM.a != RelM.b, na.rm=TRUE)) {
       stop("One or more pairs occur 2x in 'Pairs', with different relationship")
     }
-    RelM <- RelM.a
-    RelM[,] <- "U"
-    diag(RelM) <- "S"
-    RelM[!is.na(RelM.a)] <- RelM.a[!is.na(RelM.a)]
-    RelM[!is.na(RelM.b)] <- RelM.b[!is.na(RelM.b)]
-    return( RelM )
+    RelM.pairs <- RelM.a
+    RelM.pairs[,] <- "U"
+    diag(RelM.pairs) <- "S"
+    RelM.pairs[!is.na(RelM.a)] <- RelM.a[!is.na(RelM.a)]
+    RelM.pairs[!is.na(RelM.b)] <- RelM.b[!is.na(RelM.b)]
+    if (is.null(Pedigree))  return( RelM.pairs )
   }
 
+  # if arriving here, !is.null(Pedigree) & !is.null(Pairs)
+  # assuming that Pairs comes from GetMaybeRel() --> add '?' to distinguish sources
+  RelM.pairs <- apply(RelM.pairs, 1, function(x) ifelse(x %in% c('U', 'S'), x, paste0(x, '?')))
+
+  # align IDs
+  IDs <- unique(c(colnames(RelM.ped), colnames(RelM.pairs)))
+  RelM.ped.i <- inflate(RelM.ped, IDs, na='X')
+  RelM.pairs.i <- inflate(RelM.pairs, IDs, na='X')
+
+  # priority of relationships (close -> distant)
+  # RelRank <- c("S", "M", "P", "MP", "O", "PO?",
+               # "FS","FS?", "MHS", "PHS", "HS", "HS?",
+               # "MGM", "MGF", "PGM", "PGF", "GP", "GO","GP?",
+               # "FA", "FN", "FA?", "2nd?", "HA", "HN","HA?",
+               # "DFC1", "FC1", "XX?", "Q?", "U", "X")
+  used_rels <- unique(c(RelM.ped.i, RelM.pairs.i))
+  rel_lvls <- c(intersect(RelRank, used_rels), setdiff(used_rels, RelRank))
+
+  RelM.ped.i <- factor(RelM.ped.i, levels = rel_lvls)
+  RelM.pairs.i <- factor(RelM.pairs.i, levels = rel_lvls)
+  RelM <- matrix(factor(pmin(as.numeric(RelM.ped.i), as.numeric(RelM.pairs.i)),
+                        levels = seq_along(rel_lvls), labels=rel_lvls),
+                 nrow=length(IDs), dimnames=list(IDs, IDs))
+
+  return( RelM )
 }
-
-
 
 
 

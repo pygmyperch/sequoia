@@ -61,16 +61,21 @@ View(Ped_HSg5)
 
 ## Simulate genotypes
 Simulate some genotype data to use for this try-out. 
-```{r example1-d}
+```{r example1-d, eval=FALSE, purl=FALSE}
 Geno <- SimGeno(Ped = Ped_HSg5, nSnp = 200)
 ```
 Function `SimGeno()` can simulate data with a specific genotyping error rate, call rate and proportion of non-genotyped parents, see its helpfile (`?SimGeno`) for details. Here we use the defaults; 40\% of parents are presumed non-genotyped (their genotypes are removed from the dataset before `SimGeno()` returns its result). 
+
+Alternatively, use the simulated genotype data included in the package to get identical results:
+```{r}
+Geno <- Geno_HSg5
+```
 
 
 ## Parentage assignment
 Run sequoia with the genotype data, lifehistory data, and otherwise default values. It is often advisable to first only run parentage assignment, and check if the results are sensible and/or if any parameters need adjusting. Full pedigree reconstruction, including sibship clustering etc., is much more time consuming. 
 
-To only run a data check, duplicate check (always performed first) and parentage assignment, specify `Module = 'par'` (in older versions: `MaxSibIter=0`):
+To only run a data check, duplicate check (always performed first) and parentage assignment, specify `Module = 'par'`:
 ```{r example1-e}
 ParOUT <- sequoia(GenoM = Geno,
                   LifeHistData = LH_HSg5,

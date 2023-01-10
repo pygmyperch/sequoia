@@ -158,7 +158,7 @@
 #'  If the age distribution of assigned parents does not capture the maximum
 #'  possible age of parents, it is advised to specify \code{MaxAgeParent} for
 #'  one or both sexes. Not doing so may hinder subsequent assignment of both
-#'  dummy parents and grandparents.
+#'  dummy parents and grandparents. Not compatible with \code{Smooth}.
 #'
 #'  @section grandparents & avuncular
 #'  The agepriors for grand-parental and avuncular pairs is calculated from
@@ -172,7 +172,6 @@
 #'
 #' @examples
 #' # without pedigree or lifehistdata:
-#' MakeAgePrior()
 #' MakeAgePrior(MaxAgeParent = c(2,3))
 #' MakeAgePrior(Discrete=TRUE)
 #'
@@ -181,7 +180,6 @@
 #'   BirthYear=1984))
 #'
 #' # overlapping generations:
-#' data(Ped_griffin, SeqOUT_griffin, package="sequoia")
 #' # without pedigree: MaxAgeParent = max age difference between any pair +1
 #' MakeAgePrior(LifeHistData = SeqOUT_griffin$LifeHist)
 #' # with pedigree:
@@ -261,6 +259,7 @@ MakeAgePrior <- function(Pedigree = NULL,
     if (!is.null(Discrete) && Discrete && (MaxAgeParent[1] != MaxAgeParent[2])) {
       stop("When Discrete=TRUE, MaxAgeParent must be identical for dams & sires (?)")
     }
+    if (Smooth) Smooth <- FALSE  # else maxAgePO = MaxAgeParent +2
     for (p in 1:2) {
       if (!is.na(MaxAgeParent[p]) && (MaxAgeParent[p]<0 || !is.wholenumber(MaxAgeParent[p]))) {
         stop("'MaxAgeParent' must be a positive whole number")
@@ -370,25 +369,17 @@ MakeAgePrior <- function(Pedigree = NULL,
   tblA.R["0", ] <- tblA.R["0", ] / 2   # sibs & 'X' pairs with agedif 0 counted twice
 
 
-  # return if no parents of known age ----
-  NAK.R <- apply(tblA.R, 2, sum, na.rm=TRUE)
-  if (all(NAK.R[c("M","P")]==0)) {
-    return( ReturnDefault(MaxAgePO, Return) )
-  }
-  # TODO: estimate min. MaxAgePO from sibling age difference?
-
-
-  MinPairs.AgeKnown <- 20   # minimum no. mother-offspring or father-offspring pairs w known age diff
-
-
   # update MaxAgePO ----
+  NAK.R <- apply(tblA.R, 2, sum, na.rm=TRUE)
   ParAge <- suppressWarnings(
     apply(tblA.R[, c("M", "P")], 2, function(x) max(which(x > 0)) -1) )  # 1st row = agedif 0
 
+  MinPairs.AgeKnown <- 20   # minimum no. mother-offspring or father-offspring pairs w known age diff
+  # MaxAgeParent = user input
   for (p in 1:2) {
-    if (MaxAgePO[p] == (diff(BYrange)+1) & is.na(MaxAgeParent[p]) &
-        NAK.R[p] >= MinPairs.AgeKnown) {   # ignore MaxAgePO: derived from LifeHistData
-      MaxAgePO[p] <- max(ParAge[p], na.rm=TRUE)
+    if (MaxAgePO[p] == (diff(BYrange)+1) & is.na(MaxAgeParent[p]) & NAK.R[p] >= MinPairs.AgeKnown) {
+      # ignore MaxAgePO: derived from LifeHistData
+      MaxAgePO[p] <- ParAge[p]
     } else {
       MaxAgePO[p] <- max(ParAge[p], MaxAgePO[p], na.rm=TRUE)
     }
@@ -503,11 +494,13 @@ MakeAgePrior <- function(Pedigree = NULL,
     }
     LR.RU.A.default <- MkAPdefault(MaxP = pmax(MaxAgePO, MaxAgeParent, na.rm=TRUE),  # for input > pedigree-observed
                                    Disc=Discrete)
-    nx <- max(nrow(LR.RU.A.default), nrow(LR.RU.A.par))
-    if (nrow(LR.RU.A.default) < nx) {
+    if (nrow(LR.RU.A.default) < nrow(LR.RU.A.par)) {
       LR.RU.A.default <- rbind(LR.RU.A.default,
-                               matrix(0, nx-nrow(LR.RU.A.default), 5))
+                               matrix(0, nrow(LR.RU.A.par)-nrow(LR.RU.A.default), 5))
+    } else if  (nrow(LR.RU.A.default) > nrow(LR.RU.A.par)) {
+      LR.RU.A.default <- LR.RU.A.default[1:nrow(LR.RU.A.par), ]
     }
+
     for (r in RR) {
       LR.RU.A[, r] <- W.R[r] * LR.RU.A.par[, r] + (1 - W.R[r]) * LR.RU.A.default[, r]
     }
@@ -640,7 +633,6 @@ CountAgeDif <- function(BirthYear, BYrange = range(BirthYear)) {
 #'   columns: PO-FS-HS-GP-FA-HA-U.
 #'
 #' @examples
-#' data(SeqOUT_griffin, package="sequoia")
 #' PairsG <- data.frame(ID1="i122_2007_M",
 #'                      ID2 = c("i124_2007_M", "i042_2003_F", "i083_2005_M"),
 #'                      AgeDif = c(0,4,2))

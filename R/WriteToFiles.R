@@ -127,7 +127,9 @@ writeSeq <- function(SeqList,
   SpecsOUT$Complexity <- c("mono"=0, "simp"=1, "full"=2)[SpecsOUT$Complexity]
   SpecsOUT$Herm <- c("no"=0, "A"=1, "B"=2)[SpecsOUT$Herm]                           
   SpecsOUT$UseAge <- c("extra"=2, "yes"=1, "no"=0)[SpecsOUT$UseAge]
-  SpecsOUT$FindMaybeRel <- as.numeric(SpecsOUT$FindMaybeRel)
+  if ('FindMaybeRel' %in% names(SpecsOUT)) {   # dropped from version 2.4
+    SpecsOUT$FindMaybeRel <- as.numeric(SpecsOUT$FindMaybeRel)
+  }
   SpecsOUT$CalcLLR <- as.numeric(SpecsOUT$CalcLLR)
   for (x in c("SequoiaVersion", "TimeStart", "TimeEnd")) {
     if (!x %in% names(SpecsOUT))  next   # if SeqList from version 1.x

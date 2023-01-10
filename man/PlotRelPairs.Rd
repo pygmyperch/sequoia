@@ -76,9 +76,17 @@ Parents are shown above the diagonal (y-axis is parent of x-axis),
   Note that half-avuncular and (double) full cousin pairs are ignored.
 }
 \examples{
-data(Ped_griffin, package="sequoia")
 Rel.griffin <- GetRelM(Ped_griffin, patmat=TRUE, GenBack=2)
 PlotRelPairs(Rel.griffin)
+<<<<<<< Updated upstream
+=======
+
+\dontrun{
+PlotRelPairs(Rel.griffin, pch.symbols = TRUE)
+# plot with unicode symbols not supported on all platforms
+}
+
+>>>>>>> Stashed changes
 # parents & grandparents of 2008 cohort:
 PlotRelPairs(Rel.griffin,
              subset.x = Ped_griffin$id[Ped_griffin$birthyear ==2008])
