@@ -56,6 +56,13 @@ Create a summary report of the genotype data and reconstructed
 \details{
 The R markdown (.Rmd) file for the report is included with the
   package, and may freely be modified and re-used.
+
+  This reports uses package 'kableExtra' for prettier tables
+  (\code{\link[kableExtra]{kable_styling}}), and 'shiny' to make a
+  parameterised report (see
+  https://bookdown.org/yihui/rmarkdown/parameterized-reports.html). When you
+  open the .Rmd in Rstudio, you can set the parameter values via the menu
+  Knit > Knit with Parameters, which pops up a form to fill out.
 }
 \examples{
 \dontrun{

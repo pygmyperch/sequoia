@@ -121,13 +121,14 @@
 #' sumry_grif <- SummarySeq(SeqOUT_griffin, Plot=FALSE)
 #' tmp <- apply(sumry_grif$ParentCount['Genotyped',,,],
 #'              MARGIN = c('parentSex', 'parentCat'), FUN = sum)
-#' sweep(tmp, MARGIN='parentCat', STATS = rowSums(tmp), FUN = '/')
+#' props <- sweep(tmp, MARGIN='parentCat', STATS = rowSums(tmp), FUN = '/')
+#' 1 - props[,'Genotyped'] / (props[,'Genotyped'] + props[,'Dummy'])
 #'
 #' # Example for parentage assignment only
 #' conf_grif <- EstConf(Pedigree = SeqOUT_griffin$Pedigree,
 #'                LifeHistData = SeqOUT_griffin$LifeHist,
 #'                args.sim = list(nSnp = 100, SnpError = 5e-3, CallRate=0.8,
-#'                                ParMis=c(0.54, 0.44)),
+#'                                ParMis=c(0.39, 0.20)),
 #'                args.seq = list(Err=5e-3, Module="par"),
 #'                nSim = 2, nCores=1)
 #'

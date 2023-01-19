@@ -94,7 +94,7 @@ CheckLH <- function(LifeHistData, gID = NA, sorted=TRUE, returnDups = FALSE)
     IsInt <- check.integer(LifeHistData[,x])
     if (any(!IsInt, na.rm=TRUE)) {
 #      if (sum(!IsInt, na.rm=TRUE) > sum(!is.na(LifeHistData[,x]))/2) {
-        stop("LifeHistData column ", x, " should be integers (whole numbers)",
+        stop("LifeHistData column ", x, " should be integers (whole numbers) or <NA>",
              call.=FALSE)
 #      } else {
 #        warning("Converting all values in LifeHistData column ", x, " to integers",
