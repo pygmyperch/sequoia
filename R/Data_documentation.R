@@ -71,8 +71,6 @@ NULL
 
 
 #===============================================================================
-<<<<<<< Updated upstream
-=======
 #' @name Geno_HSg5
 #' @docType data
 #' @title Example genotype file: 'HSg5'
@@ -130,7 +128,6 @@ NULL
 
 
 #===============================================================================
->>>>>>> Stashed changes
 #===============================================================================
 #' @name Ped_griffin
 #' @docType data
@@ -144,27 +141,12 @@ NULL
 #'   sequoia run on simulated genotype data based on this pedigree;
 #'   \code{\link{Ped_HSg5}} for another pedigree; \code{\link{sequoia}}.
 #'
-<<<<<<< Updated upstream
-#' @docType data
-#' @keywords datasets sequoia inherit
-#' @name Inherit
-#' @usage data(Inherit)
-#' @format An array with the following dimensions:
-#' \describe{
-#'   \item{d1}{type: autosomal, x-chromosome, y-chromosome, or mtDNA}
-#'   \item{d2}{offspring sex: female, male, or unknown}
-#'   \item{d3}{offspring genotype: aa (0), aA (1), Aa (1), or AA (2)}
-#'   \item{d4}{mother genotype}
-#'   \item{d5}{father genotype}
-#' }
-=======
 #' @keywords datasets sequoia
 #' @usage data(Ped_griffin)
 #' @format A data frame with 200 rows and 4 variables (id, dam, sire, birthyear)
 #'
 #' @section Code:
 #' The R code used to create this pedigree can be found in /data-raw.
->>>>>>> Stashed changes
 NULL
 
 
@@ -214,13 +196,9 @@ NULL
 
 
 #===============================================================================
-<<<<<<< Updated upstream
-#' @title Example sequoia output (griffins)
-=======
 #' @name SeqOUT_griffin
 #' @docType data
 #' @title Example output from pedigree inference: griffins
->>>>>>> Stashed changes
 #'
 #' @description Example output of a sequoia run including sibship clustering,
 #'   with \code{\link{Geno_griffin}} as input (simulated from

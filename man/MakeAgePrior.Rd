@@ -211,6 +211,11 @@ MakeAgePrior(Pedigree=Ped_griffin,
              LifeHistData=SeqOUT_griffin$LifeHist,
              Smooth=TRUE, Flatten=TRUE)
 
+# Call from sequoia() via args.AP:
+Seq_HSg5 <- sequoia(SimGeno_example, LH_HSg5, Module="par",
+                args.AP=list(Discrete = TRUE),  # non-overlapping generations
+                CalcLLR = FALSE,   # skip time-consuming calculation of LLR's
+                Plot = FALSE)      # no summary plots when finished
 
 }
 \seealso{

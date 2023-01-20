@@ -176,31 +176,11 @@ ComparePairs <- function(Ped1 = NULL,
   if (!GenBack %in% 1:2)  stop("'GenBack' must be 1 or 2")
   if (!patmat %in% c(TRUE,FALSE))  stop("'patmat' must be TRUE or FALSE")
 
-<<<<<<< Updated upstream
-  Ped1 <- PedPolish(Ped1, ZeroToNA=TRUE, NullOK=FALSE, StopIfInvalid=FALSE)
-  if (GenBack==2)  Ped1 <- GPcols(Ped1)
-  RCM.1 <- GetRelM(Ped1, GenBack=GenBack, patmat=patmat, Return="Matrix")
-
-  lvls <- list(GB1 = list(no = c("S", "MP", "O", "FS", "HS", "U", "X"),
-                          yes = c("S","M", "P", "O", "FS", "MHS", "PHS", "U", "X")),
-               GB2 = list(no = c("S","MP", "O", "FS", "HS", "GP", "GO", "FA",
-                                 "HA", "FN", "HN", "FC1", "DFC1", "U", "X"),
-                          yes = c("S","M", "P", "O", "FS", "MHS", "PHS","MGM",
-                                  "MGF", "PGM", "PGF", "GO",
-                                  "FA", "FN", "HA", "HN", "DFC1", "FC1","U", "X")))
-
-=======
   # check & polish pedigrees
   Ped1 <- PedPolish(Ped1, ZeroToNA=TRUE, NullOK=FALSE, StopIfInvalid=FALSE, KeepAllColumns=FALSE)
->>>>>>> Stashed changes
   if (!is.null(Ped2)) {
     Ped2 <- PedPolish(Ped2, ZeroToNA=TRUE, StopIfInvalid=FALSE, KeepAllColumns=FALSE)
     if (!any(Ped2$id %in% Ped1$id))  stop("no common IDs in Ped1 and Ped2")
-<<<<<<< Updated upstream
-    if (GenBack==2)  Ped2 <- GPcols(Ped2)
-    RCM.2 <- GetRelM(Ped2, GenBack=GenBack, patmat=patmat, Return="Matrix")
-=======
->>>>>>> Stashed changes
   }
 
   # check & polish Pairs2

@@ -127,10 +127,13 @@
 #' # Example for parentage assignment only
 #' conf_grif <- EstConf(Pedigree = SeqOUT_griffin$Pedigree,
 #'                LifeHistData = SeqOUT_griffin$LifeHist,
-#'                args.sim = list(nSnp = 100, SnpError = 5e-3, CallRate=0.8,
-#'                                ParMis=c(0.39, 0.20)),
-#'                args.seq = list(Err=5e-3, Module="par"),
-#'                nSim = 2, nCores=1)
+#'                args.sim = list(nSnp = 100,   # no. in actual data, or what-if
+#'                                SnpError = 5e-3,  # best estimate, or what-if
+#'                                CallRate=0.8,     # from SnpStats()
+#'                                ParMis=c(0.39, 0.20)),  # calc'd above
+#'                args.seq = list(Err=5e-3, Module="par"),  # as in real run
+#'                nSim = 2,   # try-out, proper run >=20 (10 if huge pedigree)
+#'                nCores=1)
 #'
 #' # parent-pair confidence, per category (Genotyped/Dummy/None)
 #' conf_grif$ConfProb

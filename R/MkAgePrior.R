@@ -191,6 +191,11 @@
 #'              LifeHistData=SeqOUT_griffin$LifeHist,
 #'              Smooth=TRUE, Flatten=TRUE)
 #'
+#' # Call from sequoia() via args.AP:
+#' Seq_HSg5 <- sequoia(SimGeno_example, LH_HSg5, Module="par",
+#'                 args.AP=list(Discrete = TRUE),  # non-overlapping generations
+#'                 CalcLLR = FALSE,   # skip time-consuming calculation of LLR's
+#'                 Plot = FALSE)      # no summary plots when finished
 #'
 #' @export
 
@@ -349,16 +354,17 @@ MakeAgePrior <- function(Pedigree = NULL,
   Ped.R <- Ped.LH[! (is.na(Ped.LH$dam) & is.na(Ped.LH$sire)), ]  # individuals with at least 1 parent (quicker)
   Ped.R <- merge(PedPolish(Ped.R[,1:3]), Ped.LH[, c("id", "BirthYear")])  # BY for dropped & re-added indivs
 
-  RelA <- GetRelA(Ped.R, patmat=TRUE, GenBack=1)
-
-  AgeDifM <- outer(Ped.R$BirthYear, Ped.R$BirthYear, "-")
+  BYV <- setNames(Ped.R$BirthYear, Ped.R$id)
+  AgeDifM <- outer(BYV, BYV, "-")
+  RelL <- GetRelA(Ped.R, patmat=TRUE, GenBack=1, List = TRUE)
   tblA.R <- sapply(c("M", "P", "FS", "MHS", "PHS"),
-                function(r) table(factor(AgeDifM[RelA[,,r]==1], levels = 0:MaxT)))
+                   function(r) table(factor(AgeDifM[ RelL[[r]] ], levels = 0:MaxT)))
+
   # maternal siblings = maternal half-siblings + full siblings
   tblA.R <- cbind(tblA.R,
                   "MS" = tblA.R[,"MHS"] + tblA.R[,"FS"],
                   "PS" = tblA.R[,"PHS"] + tblA.R[,"FS"])
-  tblA.R <- tblA.R[, c("M", "P", "FS", "MS", "PS")]
+  tblA.R <- tblA.R[, RR]
 
   # Reference: age difference distribution across all pairs of individuals
   tbl.AgeDifs <- CountAgeDif(Ped.LH$BirthYear, BYrange)  # quicker than table(outer()), function below

@@ -7,6 +7,13 @@
 #' @details  The R markdown (.Rmd) file for the report is included with the
 #'   package, and may freely be modified and re-used.
 #'
+#'   This reports uses package 'kableExtra' for prettier tables
+#'   (\code{\link[kableExtra]{kable_styling}}), and 'shiny' to make a
+#'   parameterised report (see
+#'   https://bookdown.org/yihui/rmarkdown/parameterized-reports.html). When you
+#'   open the .Rmd in Rstudio, you can set the parameter values via the menu
+#'   Knit > Knit with Parameters, which pops up a form to fill out.
+#'
 #' @param SeqList list with output from \code{\link{sequoia}}. If not provided,
 #'   all other input is ignored and an example report using the griffin data is
 #'   generated.

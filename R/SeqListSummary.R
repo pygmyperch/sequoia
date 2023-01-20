@@ -96,9 +96,9 @@ SummarySeq <- function(SeqList = NULL,
   # check input
   Ped <- PedPolish(PedIN, ZeroToNA=TRUE, StopIfInvalid=FALSE)  # else problem when running sequoia()
   Ped$Sex <- with(Ped, ifelse(id %in% dam,
-                             ifelse(id %in% sire,
-                             "Herm", "Female"),
-                ifelse(id %in% sire, "Male", "Unknown")))
+                              ifelse(id %in% sire,
+                                     "Herm", "Female"),
+                              ifelse(id %in% sire, "Male", "Unknown")))
   if (any(Ped$Sex == "Herm")) {
     nSex <- 4
     Ped$Sex <- factor(Ped$Sex, levels=c("Female", "Male", "Unknown", "Herm"))
@@ -137,16 +137,6 @@ SummarySeq <- function(SeqList = NULL,
     Ped[, paste0("GDO.", x)] <- getGDO(Ped[, x], SNPd, DumPrefix)
   }
 
-<<<<<<< Updated upstream
-  #~~~~~~~~~~~~~~~~~~~~~~~~~
-  ParentCount <- array(dim = c(2,nSex,2,4),
-                       dimnames = list(c("G", "D"),   # type of indiv
-                                       levels(Ped$Sex),
-                                       c("Dam", "Sire"),   # sex of parent
-                                       levels(Ped$GDO.id)))   # type of parent
-  ParentCount[,,"Dam",] <- with(Ped, table(GDO.id, Sex, GDO.dam))[c("Genotyped", "Dummy"),,]
-  ParentCount[,,"Sire",] <- with(Ped, table(GDO.id, Sex, GDO.sire))[c("Genotyped", "Dummy"),,]
-=======
   itypes <- c('G','D','O')
   typenames <- c("Genotyped", "Dummy", "Observed")
 
@@ -159,7 +149,6 @@ SummarySeq <- function(SeqList = NULL,
   ParentCount[,,"Dam",] <- with(Ped, table(GDO.id, Sex, GDO.dam))[typenames,,]
   ParentCount[,,"Sire",] <- with(Ped, table(GDO.id, Sex, GDO.sire))[typenames,,]
   dimnames(ParentCount)[[1]] <- typenames
->>>>>>> Stashed changes
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~
   GPX <- matrix(c("MGM", "MGF", "PGM", "PGF"), 2,2)
@@ -172,19 +161,14 @@ SummarySeq <- function(SeqList = NULL,
   for (x in paste0("GDO.", c(GPX))) {
     PedGP[is.na(PedGP[,x]), x] <- "None"
   }
-<<<<<<< Updated upstream
-  GPCount <- array(dim=c(3,4,4),
-                   dimnames = list(c("G", "D", "T"),   # type of indiv
-=======
   GPCount <- array(dim=c(4,4,4),
                    dimnames = list(c(itypes, "T"),   # type of indiv
->>>>>>> Stashed changes
                                    c(GPX),
                                    levels(Ped$GDO.id)))  # type of GP
   for (x in c(GPX)) {
-    GPCount[c("G","D"),x,] <- table(PedGP$GDO.id, PedGP[, paste0("GDO.",x)])[c("Genotyped", "Dummy"),]
+    GPCount[itypes,x,] <- table(PedGP$GDO.id, PedGP[, paste0("GDO.",x)])[typenames,]
   }
-  GPCount["T",,] <- apply(GPCount[c("G","D"),,], 2:3, sum)
+  GPCount["T",,] <- apply(GPCount[itypes,,], 2:3, sum)
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~
   Ped$ParentPair <- with(Ped, ifelse(is.na(dam) | is.na(sire), NA,
@@ -244,11 +228,11 @@ SummarySeq <- function(SeqList = NULL,
                             "other half sibs")
   }
 
-  dimnames(GPCount)[[1]] <- c("Genotyped", "Dummy", "All")
-  dimnames(GPCount)[[2]] <-  c("maternal grandmothers",
-                               "maternal grandfathers",
-                               "paternal grandmothers",
-                               "paternal grandfathers")
+  dimnames(GPCount)[[1]] <- c(typenames, "All")
+  dimnames(GPCount)[[2]] <- c("maternal grandmothers",
+                              "maternal grandfathers",
+                              "paternal grandmothers",
+                              "paternal grandfathers")
 
   PedG$dam[PedG$GDO.dam != "Genotyped"] <- NA
   PedG$sire[PedG$GDO.sire != "Genotyped"] <- NA
@@ -263,7 +247,7 @@ SummarySeq <- function(SeqList = NULL,
                                                    max(getGenerations(PedG, StopIfInvalid=FALSE))),  # ?
                       "founders" = c(sum(is.na(Ped$dam) & is.na(Ped$sire)),
                                      sum(is.na(PedG$dam) & is.na(PedG$sire)))
-                      )
+  )
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -274,15 +258,6 @@ SummarySeq <- function(SeqList = NULL,
 
   if (Plot) {
     img <- tryCatch(
-<<<<<<< Updated upstream
-	  {
-	    suppressWarnings(plot.seq(SummaryOUT, PedIN, Panels))
-	  },
-	  error = function(e) {
-	    message("SummarySeq: Plotting area too small, or other plotting problem")
-	    return(NA)
-	  })
-=======
       {
         suppressWarnings(PlotSeqSum(SummaryOUT, PedIN, Panels))
       },
@@ -290,16 +265,15 @@ SummarySeq <- function(SeqList = NULL,
         message("SummarySeq: Plotting area too small, or other plotting problem")
         return(NA)
       })
->>>>>>> Stashed changes
     if (!is.null(SeqList) & any(Panels=="all") & is.null(img)) {
       if (interactive()) {
         inp <- readline(prompt = "Press <Enter> to continue to next plot ...")
       }
-			if ("AgePriorExtra" %in% names(SeqList)) {
-				PlotAgePrior(SeqList$AgePriorExtra)
-			} else {
-				PlotAgePrior(SeqList$AgePriors)
-			}
+      if ("AgePriorExtra" %in% names(SeqList)) {
+        PlotAgePrior(SeqList$AgePriorExtra)
+      } else {
+        PlotAgePrior(SeqList$AgePriors)
+      }
     }
   }
 
@@ -321,14 +295,10 @@ SummarySeq <- function(SeqList = NULL,
 #'   respectively. If columns with parental LLRs and/or Mendelian errors are
 #'   present, these will be plotted as well.
 #' @param Panels  character vector with panel(s) to plot. Choose from 'all',
-<<<<<<< Updated upstream
-#'   'G.parents', 'D.parents', 'sibships', 'LLR', 'OH'.
-=======
 #'   'G.parents' (parents of genotyped individuals), 'D.parents' (parents of
 #'   dummies), 'O.parents' (parents of non-genotyped non-dummies), sibships',
 #'   'LLR', 'OH'.
 #' @param ask  ask for user key stroke before proceeding to next plot.
->>>>>>> Stashed changes
 #'
 #' @importFrom graphics par barplot hist text axis mtext
 #'
@@ -340,16 +310,9 @@ SummarySeq <- function(SeqList = NULL,
 
 PlotSeqSum <- function(SeqSum, Pedigree, Panels="all", ask=TRUE)
 {
-<<<<<<< Updated upstream
-  col.damsire <- matrix(c("darkred", "firebrick2", "pink", "lightgrey",
-                         "darkblue", "dodgerblue", "lightblue","lightgrey"), 4,2,
-                        dimnames=list(c("G","D","O","X"), c("Dam", "Sire")))
-  AllPanels <- c('G.parents', 'D.parents', 'sibships', 'LLR', 'OH')
-=======
 
   PanelsIN <- Panels
   AllPanels <- c('G.parents', 'D.parents', 'O.parents', 'sibships', 'LLR', 'OH')
->>>>>>> Stashed changes
   if (Panels[1]=="all") {
     Panels <- AllPanels
   } else if (!all(Panels %in% AllPanels)) {
@@ -409,53 +372,6 @@ PlotSeqSum <- function(SeqSum, Pedigree, Panels="all", ask=TRUE)
   for (z in c('G', 'O')) {
     if ( !paste0(z, '.parents') %in% Panels )  next
 
-<<<<<<< Updated upstream
-  # parents of genotyped individuals
-	if ('G.parents' %in% Panels) {
-		bp <- barplot(t(rbind(ParCount.G,
-													GPCount)[6:1,]), horiz=TRUE, las=1,
-									space=c(rep(.2,4), 1,.2),
-									main="No. parents and grandparents \nassigned to genotyped individuals",
-									xlab = "No. genotyped individuals",
-									names.arg=c("Pat. grandfather", "Pat. grandmother",
-															"Mat. grandfather","Mat. grandmother",
-															"Sire (father)", "Dam (mother)"))
-		axis(side=3, at=c(0:10)*N.G/10,
-				 labels=paste0(seq(0,100,10),"%"), col="darkgrey", col.axis="darkgrey")
-		abline(v=c(0:10)*N.G/10, col="grey", lty=3, xpd=FALSE)
-
-		barplot(t(ParCount.G["Dam",,drop=FALSE]), horiz=TRUE, space=7, las=1,
-						col=col.damsire[,1], add=TRUE, axes=F, names.arg="")
-		barplot(t(ParCount.G["Sire",,drop=FALSE]), horiz=TRUE, space=5.8, las=1,
-						col=col.damsire[,2], add=TRUE, axes=F,names.arg="")
-
-		for (p in 1:2) {
-			for (x in 1:4) {
-				if (ParCount.G[p, x]>0) {
-					rot <- ifelse(ParCount.G[p, x]/N.G < 0.05, TRUE, FALSE)
-					xx <- ifelse(x==1, ParCount.G[p, x]/2,
-											 ParCount.G[p, x]/2 + sum(ParCount.G[p, 1:(x-1)]))
-					text(xx, bp[7-p], colnames(ParCount.G)[x], col=ifelse(x==1, 0, 1),
-							 srt=ifelse(rot, 45, 0), cex=ifelse(rot, 0.8, 1))
-				}
-			}
-		}
-
-		barplot(t(GPCount[4:1,]), horiz=TRUE, las=1, space=.2,
-						add=TRUE, axes=F, names.arg=rep("",4))
-		for (g in 1:4) {
-			for (x in 1:4) {
-				if (GPCount[g, x]>0) {
-					rot <- ifelse(GPCount[g, x]/N.G < 0.05, TRUE, FALSE)
-					xx <- ifelse(x==1, GPCount[g, x]/2,
-											 GPCount[g, x]/2 + sum(GPCount[g, 1:(x-1)]))
-					text(xx, rev(bp[1:4])[g], colnames(GPCount)[x], col=ifelse(x==1, 0, 1),
-							 srt=ifelse(rot, 45, 0), cex=ifelse(rot, 0.8, 1))
-				}
-			}
-		}
-	}
-=======
     if (ask & z=='O' & !IsFirstPanel['O.parents']) {
       inp <- readline(prompt = "Press <Enter> to continue to next plot ...")
     }
@@ -500,7 +416,6 @@ PlotSeqSum <- function(SeqSum, Pedigree, Panels="all", ask=TRUE)
       }
     }
   }
->>>>>>> Stashed changes
 
 
   #~~~~~~~~~~~~~~~~~
@@ -513,22 +428,6 @@ PlotSeqSum <- function(SeqSum, Pedigree, Panels="all", ask=TRUE)
   if (AnyHerm)  PCD <- cbind(PCD,
                              t(ParCounts[['D']]['Herm',,]))
 
-<<<<<<< Updated upstream
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # hist sibship sizes
-	if ('sibships' %in% Panels) {
-		if (any(c("G.parents", "D.parents") %in% Panels) & interactive()) {
-			inp <- readline(prompt = "Press <Enter> to continue to next plot ...")
-		}
-		np <- par(mai=c(.85, .8,1,.2), mfrow=c(1,3))
-		for (p in 1:2) {
-			barplot(t(SeqSum$SibSize[[p]]), col=col.damsire[,p], las=1, space=0,
-						xlab="Sibship size", ylab="Count", main=paste0(c("M","P")[p], "aternal sibships"))
-		}
-		barplot(SeqSum$SibSize[["full"]], col="forestgreen", las=1, space=0,
-						xlab="Sibship size", ylab="Count", main="Full sibships")  #  (size >1)
-	}
-=======
   if ('D.parents' %in% Panels) {
 
     if (ask & !IsFirstPanel['D.parents']) {
@@ -585,27 +484,10 @@ PlotSeqSum <- function(SeqSum, Pedigree, Panels="all", ask=TRUE)
     barplot(SeqSum$SibSize[["full"]], col="forestgreen", las=1, space=0,
             xlab="Sibship size", ylab="Count", main="Full sibships")  #  (size >1)
   }
->>>>>>> Stashed changes
 
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # OH
-<<<<<<< Updated upstream
-	OHc <- c("OHdam", "OHsire", "MEpair")
-	if (any(c("OH_Mother", "OH_Father", "ME_Pair") %in% names(Pedigree))) {
-		these <- match(c("OH_Mother", "OH_Father", "ME_Pair"), names(Pedigree))
-		names(Pedigree)[na.exclude(these)] <- OHc[!is.na(these)]
-	}
-  if (any(OHc %in% names(Pedigree)) & 'OH' %in% Panels) {
-		for (i in 1:3) {
-			Pedigree[which(Pedigree[,OHc[i]]==-9), OHc[i]] <- NA
-		}
-    if (any(!is.na(unlist(Pedigree[,OHc])))) {
-			if (length(Panels)>1 & interactive()) {
-				inp <- readline(prompt = "Press <Enter> to continue to next plot ...")
-			}
-			np <- par(mfrow=c(1,3), mai=c(.8,.4,.4,.1))
-=======
   OHc <- c("OHdam", "OHsire", "MEpair")
   if (any(c("OH_Mother", "OH_Father", "ME_Pair") %in% names(Pedigree))) {
     these <- match(c("OH_Mother", "OH_Father", "ME_Pair"), names(Pedigree))
@@ -623,9 +505,8 @@ PlotSeqSum <- function(SeqSum, Pedigree, Panels="all", ask=TRUE)
         inp <- readline(prompt = "Press <Enter> to continue to next plot ...")
       }
       np <- par(mfrow=c(1,3), mai=c(.8,.4,.4,.1))
->>>>>>> Stashed changes
       Mainz.OH <- c("Offspring - dam\nopposing homozygotes", "Offspring - sire\nopposing homozygotes ",
-               "Offspring - dam - sire\nMendelian errors")
+                    "Offspring - dam - sire\nMendelian errors")
       for (i in 1:3) {
         if (!OHc[i] %in% names(Pedigree))  next
         if (all(is.na(Pedigree[,OHc[i]]))) next
@@ -636,10 +517,10 @@ PlotSeqSum <- function(SeqSum, Pedigree, Panels="all", ask=TRUE)
       warning("No 'OH' panel, because OH columns are all NA", immediate.=TRUE)
     }
   } else if ('OH' %in% Panels & length(Panels) < length(AllPanels)) {
-      warning("No 'OH' panel, because no OH columns", immediate.=TRUE)
+    warning("No 'OH' panel, because no OH columns", immediate.=TRUE)
   }
 
-	#~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # LLR
   LLRc <- c("LLRdam", "LLRsire", "LLRpair")
   if (any(LLRc %in% names(Pedigree)) & 'LLR' %in% Panels) {
@@ -648,20 +529,14 @@ PlotSeqSum <- function(SeqSum, Pedigree, Panels="all", ask=TRUE)
       Pedigree[which(Pedigree[,LLRc[i]]==999), LLRc[i]] <- NA
     }
     if (any(!is.na(unlist(Pedigree[,LLRc])))) {
-<<<<<<< Updated upstream
-			if (any(c("G.parents", "D.parents", "sibships") %in% Panels) & interactive()) {
-				inp <- readline(prompt = "Press <Enter> to continue to next plot ...")
-			}
-=======
       if (ask & !IsFirstPanel['LLR']) {
         inp <- readline(prompt = "Press <Enter> to continue to next plot ...")
       }
->>>>>>> Stashed changes
       np <- par(mfrow=c(1,3), mai=c(.8,.4,.4,.1))
-			brks.LLR <- pretty(x=unlist(Pedigree[, LLRc]), n=50)
-			Mainz.LLR <- c("LLR dam / not dam", "LLR sire / not sire", "LLR parent pair",
-             "Offspring - dam\nopposing homozygotes", "Offspring - sire\nopposing homozygotes ",
-             "Offspring - dam - sire\nMendelian errors")
+      brks.LLR <- pretty(x=unlist(Pedigree[, LLRc]), n=50)
+      Mainz.LLR <- c("LLR dam / not dam", "LLR sire / not sire", "LLR parent pair",
+                     "Offspring - dam\nopposing homozygotes", "Offspring - sire\nopposing homozygotes ",
+                     "Offspring - dam - sire\nMendelian errors")
       for (i in 1:3) {
         if (!LLRc[i] %in% names(Pedigree))  next
         if (all(is.na(Pedigree[,LLRc[i]]))) next
@@ -675,23 +550,6 @@ PlotSeqSum <- function(SeqSum, Pedigree, Panels="all", ask=TRUE)
     warning("No 'LLR' panel, because no LLR columns", immediate.=TRUE)
   }
 
-<<<<<<< Updated upstream
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # total log-likelihood per iteration
-  # nIt <- with(SeqOUT, c(length(TotLikPar), length(TotLikSib)))
-  # with(SeqOUT, plot(1:nIt[1], TotLikPar, type="b", lwd=2, col="darkgrey",
-  #                   xlim=c(1, sum(nIt)), ylim=c(min(TotLikSib), max(TotLikPar)),
-  #                   xlab="Iteration", ylab="Total log-likelihood"))
-  # with(SeqOUT, lines((nIt[1]-1) + 1:nIt[2], TotLikSib, type="b", lwd=2))
-
-#   TLL <- c(SeqOUT$TotLikParents, SeqOUT$TotLikSib)
-#   xv <- c(paste("p", 1:length(SeqOUT$TotLikParents)-1),
-#           paste("s", 1:length(SeqOUT$TotLikSib)-1))
-#   plot(TLL, type="b", xaxt="n", xlab="Round")
-#   axis(1, at=1:length(TLL), labels=xv)
-
-=======
->>>>>>> Stashed changes
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~
   par(oldpar)

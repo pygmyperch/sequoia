@@ -1,7 +1,5 @@
-<<<<<<< Updated upstream
-=======
 
-# sequoia 2.4
+# sequoia 2.4.1
 
 ### New features & major changes
 - R markdown file to create (or serve as a first draft of) a summary report of input and output, called via `sequoia_report()`
@@ -31,9 +29,9 @@
 - fixes bug in `GenoConvert()` when `Informat='single'`. 
 
 
->>>>>>> Stashed changes
 # sequoia 2.3.5
-- fixes bug: OH count always zero when there is no co-parent
+- fixes bug: OH count was always zero when there was no co-parent
+
 
 # sequoia 2.3.4
 - fixes bug in `CalcPairLL()` HS likelihood when conditioning on pedigree was incorrect. No/minimal effect on pedigree reconstruction.
@@ -43,8 +41,10 @@
 # sequoia 2.3.3
 fixes minor bugs identified by CRAN valgrind and gcc-ASAN
 
+
 # sequoia 2.3.2
 minor edits to vignette to comply with CRAN precheck
+
 
 # sequoia 2.3.1
 
@@ -54,11 +54,8 @@ have prefix 'H'; closer links between the two 'clonal' sibship parts during pedi
 - Assignment of sibship grandparents moved to before check & assignment of additional parents; this proved to increase correct assignments without increasing incorrect assignments. 
 - new function `CalcBYprobs()` to estimate the probability that individual i is born in year y. 
 
-
-
 ### Minor changes
 - various edits to Fortran code improving general performance. 
-
 
 ### Bug fixes
 - fixed inconsistent rounding in `EstConf()` output
@@ -83,7 +80,6 @@ have prefix 'H'; closer links between the two 'clonal' sibship parts during pedi
 - hermaphrodites: re-implemented and greatly improved sibship clustering. Specification of hermaphrodite vs diocious is now separate input parameter `Herm` instead of specified via `Complex`. New output list element `DummyClones`
 - improved performance when a large proportion of birth years are missing
 - new function `CalcRped()` to calculate pedigree relatedness. Uses package `kinship2`. 
-
 
 ### Bug fixes
 Various smaller bugs have been fixed, some affecting assignment rate

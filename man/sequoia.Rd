@@ -313,6 +313,7 @@ SeqOUT2.b <- sequoia(GenoM = SimGeno_example, #  Err = 1e-4 by default
 PC2.b <- PedCompare(Ped_HSg5, SeqOUT2.b$Pedigree)
 PC2.b$Counts["GT",,]
 }
+
 \dontrun{
 # ===  EXAMPLE 2: real data  ===
 # ideally, select 400-700 SNPs: high MAF & low LD

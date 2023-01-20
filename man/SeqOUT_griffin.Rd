@@ -3,11 +3,7 @@
 \docType{data}
 \name{SeqOUT_griffin}
 \alias{SeqOUT_griffin}
-<<<<<<< Updated upstream
-\title{Example sequoia output (griffins)}
-=======
 \title{Example output from pedigree inference: griffins}
->>>>>>> Stashed changes
 \format{
 a list, see \code{\link{sequoia}}
 }

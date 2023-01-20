@@ -93,13 +93,8 @@ CheckLH <- function(LifeHistData, gID = NA, sorted=TRUE, returnDups = FALSE)
   for (x in c("Sex", "BirthYear", "BY.min", "BY.max")) {
     IsInt <- check.integer(LifeHistData[,x])
     if (any(!IsInt, na.rm=TRUE)) {
-#      if (sum(!IsInt, na.rm=TRUE) > sum(!is.na(LifeHistData[,x]))/2) {
-        stop("LifeHistData column ", x, " should be integers (whole numbers) or <NA>",
-             call.=FALSE)
-#      } else {
-#        warning("Converting all values in LifeHistData column ", x, " to integers",
-#                immediate. = TRUE)
-#      }
+      warning("In LifeHistData column ", x, ", these values are converted to <NA>: ",
+              unique(LifeHistData[,x][IsInt %in% FALSE]), immediate.=TRUE, call.=FALSE)
     }
     LifeHistData[, x] <- ifelse(IsInt, suppressWarnings(as.integer(as.character(LifeHistData[, x]))), NA)
     if (x=="Sex") {

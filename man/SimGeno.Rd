@@ -63,7 +63,8 @@ currently supported by the pedigree reconstruction with
 \code{\link{sequoia}} !}
 
 \item{InheritFile}{file name of file with inheritance patterns, with
-extension csv, txt, xls or xlsx (the latter two require library xlsx).}
+extension csv, txt, xls or xlsx (the latter two require library
+\pkg{openxlsx}).}
 
 \item{quiet}{suppress messages.}
 }

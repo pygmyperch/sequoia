@@ -253,11 +253,8 @@
 #'   \item vignette("sequoia") for detailed manual & FAQ.
 #' }
 #'
-<<<<<<< Updated upstream
-=======
 #'
 #'
->>>>>>> Stashed changes
 #' @examples
 #' # ===  EXAMPLE 1: simulated data  ===
 #' head(SimGeno_example[,1:10])
@@ -295,6 +292,7 @@
 #' PC2.b <- PedCompare(Ped_HSg5, SeqOUT2.b$Pedigree)
 #' PC2.b$Counts["GT",,]
 #' }
+#'
 #' \dontrun{
 #' # ===  EXAMPLE 2: real data  ===
 #' # ideally, select 400-700 SNPs: high MAF & low LD
@@ -548,6 +546,7 @@ sequoia <- function(GenoM = NULL,
                              message("AgePrior: error!")
                              return(ParList)
                            })
+
   } else if ("AgePriors" %in% names(SeqList) & !"PedigreePar" %in% names(SeqList)) {
     if(!quietR)  message("using AgePriors in SeqList again")
   }

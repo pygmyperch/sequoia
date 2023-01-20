@@ -202,6 +202,9 @@ The same pair may be included multiple times, e.g. with different
 }
 
 \examples{
+CalcPairLL(Pairs = data.frame(ID1='i116_2006_M', ID2='i119_2006_M'),
+           GenoM = Geno_griffin, Err = 1e-04, Plot=FALSE)
+
 ## likelihoods underlying parent LLR in pedigree:
 # Example: dams for bottom 3 individuals
 tail(SeqOUT_griffin$PedigreePar, n=3)

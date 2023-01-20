@@ -126,11 +126,6 @@ static R_NativePrimitiveArgType eType[] = {
 };
 
 
-<<<<<<< Updated upstream
-extern void F77_NAME(makeped)(int *ng, int *specsintglb, int *specsintmkped, 
-  double *specsdbl, double *errv, int *genofr, int *sexrf, int *byrf, 
-	double *aprf, int *parentsrf, double *lrrf, int *ohrf, 
-=======
 static R_NativePrimitiveArgType relType[] = {
   INTSXP,
   INTSXP,
@@ -142,7 +137,6 @@ static R_NativePrimitiveArgType relType[] = {
 extern void F77_NAME(makeped)(int *ng, int *specsintglb, int *specsintmkped,
   double *specsdbl, double *errv, int *genofr, int *sexrf, int *byrf,
 	double *aprf, int *parentsrf, double *lrrf, int *ohrf,
->>>>>>> Stashed changes
 	int *nd, int *dumparrf, double *dumlrrf, int *dumbyrf, double *totll, double *apout);
 
 extern void F77_NAME(duplicates)(int *ng, int *specsint, double *specsdbl,
@@ -171,6 +165,7 @@ extern void F77_NAME(deallocall)(void);
 
 extern void F77_NAME(mkerrors)(int *nind, int *nsnp, int *genofr, double *eprobfr);
 
+extern void F77_NAME(getrel)(int *nind, int *pedrf, int *nrel, int *relv);
 
 
 static const R_FortranMethodDef FortranEntries[] = {
@@ -182,6 +177,7 @@ static const R_FortranMethodDef FortranEntries[] = {
   {"getbyprobs", (DL_FUNC) &F77_NAME(getbyprobs), 8, BYprobType},
   {"deallocall", (DL_FUNC) &F77_NAME(deallocall), 0},
 	{"mkerrors", (DL_FUNC) &F77_NAME(mkerrors), 4, eType},
+  {"getrel", (DL_FUNC) &F77_NAME(getrel), 4, relType},
   {NULL, NULL, 0, NULL}
 };
 
