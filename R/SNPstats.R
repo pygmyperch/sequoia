@@ -88,6 +88,7 @@ SnpStats <- function(GenoM,
   HWE.p <- sapply(1:ncol(GenoM),
                   function(i) suppressWarnings(chisq.test(x = counts.o[,i],
                                                           p = freq.e[,i])$p.value))
+  HWE.p[AF==0 | AF==1] <- 1.0  # fixed
   OUT <- cbind(AF, Mis, HWE.p)
 
   if (is.logical(Pedigree)) {
