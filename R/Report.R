@@ -76,5 +76,5 @@ sequoia_report <- function(SeqList = NA,
                                   output_GetMaybeRel = MaybeRel,
                                   output_EstConf = Conf,
                                   comments = comments,
-                                  printcode = printcode))
+                                  printcode = FALSE))
 }

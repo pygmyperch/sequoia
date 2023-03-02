@@ -46,8 +46,8 @@
 #'
 #' @param Pedigree reference pedigree from which to simulate, dataframe with
 #'   columns id-dam-sire. Additional columns are ignored.
-#' @param LifeHistData dataframe with id, sex (1=female, 2=male, 3=unknown), and
-#'   birth year.
+#' @param LifeHistData dataframe with id, sex (1=female, 2=male, 3=unknown),
+#' birth year, and optionally BY.min - BY.max - YearLast.
 #' @param args.sim  list of arguments to pass to \code{\link{SimGeno}}, such as
 #'   \code{nSnp} (number of SNPs), \code{SnpError} (genotyping error rate) and
 #'   \code{ParMis} (proportion of non-genotyped parents). Set to \code{NULL} to

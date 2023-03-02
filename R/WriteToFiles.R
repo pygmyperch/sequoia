@@ -58,7 +58,7 @@ writeSeq <- function(SeqList,
                      quiet = FALSE) {
 
   if (!OutFormat %in% c("xls", "xlsx", "txt"))  stop("Invalid OutFormat")
-  if (!is.list(SeqList))  stop("SeqList should be a list")
+  if (!inherits(SeqList, 'list'))  stop("SeqList should be a list")
 
 
   if (!is.null(MaybeRel)) {
@@ -163,8 +163,8 @@ writeSeq <- function(SeqList,
   utils::write.table(as.data.frame(t(SpecsOUT)), file="SequoiaSpecs.txt",
               sep = "\t,\t", quote = FALSE, col.names = FALSE)
   writeColumns(SeqList$AgePriors, "AgePriors.txt", row.names=FALSE)
-  if (ncol(SeqList[["LifeHist"]])>5) {
-    writeColumns(SeqList[["LifeHist"]][,1:5], "LifeHist.txt", row.names=FALSE)
+  if (ncol(SeqList[["LifeHist"]])>6) {
+    writeColumns(SeqList[["LifeHist"]][,1:6], "LifeHist.txt", row.names=FALSE)
   } else {
     writeColumns(SeqList[["LifeHist"]], "LifeHist.txt", row.names=FALSE)
   }
