@@ -21,7 +21,7 @@ implicit none
 
 integer :: nInd, nSnp, nIndLH, maxSibSize, MaxOppHom, MaxMendelE, Hermaphrodites, &
   nC(2), nYears, maxAgePO, nPairs, Complx, quiet, AgePhase, BYzero
-integer, parameter :: mxA=2**5, & ! max no. ancestors considered when testing for pedigree loop
+integer, parameter :: mxA=2**6, & ! max no. ancestors considered when testing for pedigree loop
   mxCP = 50, &  ! max no. candidate parents per sex
   MaxMaxAgePO = 100, &  ! maximum of MaxAgePO
   XP = 5  ! multiplier nInd --> max no. candidate sib pairs
@@ -3099,9 +3099,9 @@ if (ParOK) then
     call setParTmp(candP, kP, A, kA)
     call CalcU(candP, kP, parCP(3-kA),3-kA, LLtmp(2))
     LLrev(fcl,1) = LLrev(fcl,1) + (LLtmp(2) - LLtmp(1))
-    call setParTmp(candP, kP, parCP(kA), kA)
   endif
 endif                                   
+call setParTmp(candP, kP, parCP(kA), kA)
 
 LLrevX = missing                
 if (SexUnk .and. ParOK) then  ! also consider as parent of other sex
@@ -7501,9 +7501,8 @@ do k=1,2
       endif
       
       if (Complx==0) then  ! ensure monogamous
-        Par = 0
-        
-        call getFSpar(s, k, .FALSE., Par)
+        Par = 0       
+        call getFSpar(s, k, .FALSE., Par)        
         if (Mate(i)/=Par .and. Mate(i)/=0 .and. Par/=0) then
           LLtmp = missing               
           if (Mate(i)<0 .and. Par<0) then
@@ -11732,7 +11731,7 @@ integer, intent(IN) :: A, SB, kB, SA, kAx
 integer, intent(OUT) :: TopSib    ! most likely FS of A within SB
 double precision, intent(OUT) :: LL, dLL(maxSibSize)  ! dLL
 integer :: PA, kA, AncA(2,mxA), GA(2), InbrX, Par(nS(SB,kB)), MaybeFS(nS(SB,kB)), &
-  f, i, Bj, Inbr(nS(SB,kB)),  GB(ns(SB,kB), 2), DoQuick, l,x,y,g,h,Ei,z,j,Rj 
+  f, i, Bj, Inbr(nS(SB,kB)),  GB(ns(SB,kB), 2), DoQuick, l,x,y,g,h,Ei,z,j,Rj, ParAtmp 
 double precision :: ALR, LRQ, LLtmp(2), LLUX, PrL(nSnp, nS(SB,kB),2), PrXY(3,3,2), &
   PrG(3), PrX(3,2), PrY(3,2), PrW(3), PrZ(3), PrV(3) 
 logical :: ParOK, ParBisClone(ns(SB,kB))
@@ -11927,8 +11926,10 @@ endif
 
 if (A/=0 .and. nYears>1) then    ! check if A is more likely to be parent of sib instead  
   do f=1, nS(SB,kB)
-    if (MaybeFS(f)<1 .or. Par(f)/=0 .or. Parent(SibID(f, SB, kB), 3-kB)/=0) cycle  
-    if (AgeDiff(SibID(f, SB, kB), A) <= 0) cycle
+    Bj = SibID(f, SB, kB)
+    Bj = SibID(f, SB, kB)
+    if (MaybeFS(f)<1 .or. Par(f)/=0 .or. Parent(Bj, 3-kB)/=0) cycle  
+    if (AgeDiff(Bj, A) <= 0) cycle
     if (Sex(A)<3 .and. Sex(A)/=3-kB)  cycle  ! TODO check both sexes?
     Bj = SibID(f, SB, kB)
     call ChkValidPar(Bj, 3, A, 3-kB, ParOK)  
@@ -11957,13 +11958,14 @@ if (A>0 .and. PA/=0 .and. any(Parent(SibID(1:ns(SB,kB),SB,kB),3-kB)==PA) .and. &
   else
     LLtmp(1) = LLUX
   endif
+  ParAtmp = Parent(A,kB)  ! 0 or -SB                           
   call setParTmp(A, sex(A), -SB, kB)
   if (Parent(A,3-kB) < 0) then
     call CalcU(-SB, kB, Parent(A,3-kB), 3-kB, LLtmp(2))
   else
     LLtmp(2) = CLL(SB,kB)
   endif
-  call setParTmp(A, sex(A), 0, kB) 
+  call setParTmp(A, sex(A), ParAtmp, kB) 
   call CalcCLL(SB,kB)
   LL = LLUX + LLtmp(2) - LLtmp(1)  
 
@@ -13538,6 +13540,11 @@ double precision, intent(OUT) :: LL
 integer :: i, r, AncB(2,mxA), m, DoQuickA, DoQuickB, l, x, y, z, u,v, Ai
 double precision :: PrL(nSnp), PrGG(3,2), PrGA(3), PrXY(3,3,3,3,3), PrA(3), PrPA(3)
 
+if (nS(SA,kA)==0 .or. ns(SB,kB)==0) then
+  LL = NotImplemented
+  return
+endif
+
 LL = missing
 do i=1, nS(SB,kB)
   if (kA /= kB) then
@@ -13627,13 +13634,13 @@ end subroutine dummyHFA
 subroutine getEstBY(A, kA, lvl, BYLR)
 use Global
 implicit none
-
 ! lvl: 1=own; 2=own + est. from relatives exact BY + parent yearlast; 
 ! 3= 2 + est. BY from par + GP, 4= 2 + est. BY from offspr, 5 = all (NOT est BY from sibs)
 
 integer, intent(IN) :: A, kA, lvl
 double precision, intent(OUT) :: BYLR(nYears)
 
+BYLR = LOG10(zero)                  
 if (A > 0) then
   BYLR = IndBY(:, A, lvl)
 else if (A < 0) then
@@ -13670,7 +13677,8 @@ LPBY = zero
 if (A > 0) then
   LPBY(:,1) = IndBY(:, A, 1)   ! own exact BY / BYrange only
 else !if (A < 0) then
-  LPBY(:,1) = LOG10(1.0D0/nYears)   ! dummy --> by definition no own BY info
+  LPBY(:,1) = LOG10(1.0D0/(nYears-1))   ! dummy --> by definition no own BY info
+  LPBY(nYears,1) = LOG10(zero)   ! dummy can't be 'born' in last year
 endif
 
 call CalcBYup(A, k, BYup)    ! info from parents + grandparents
@@ -13698,26 +13706,6 @@ do w=2,5
     DumBY(:, -A, k, w) = LPBY(:,w)
   endif
 enddo
-
-! if (A==1201) then
-  ! open (unit=42,file="log.txt",status="unknown", position="append")
-  ! write (42, *) ""
-  ! write (42, *) "LPBY ", A, Parent(A,:)
-  ! write(42,'(5x, 50i8)')  (/ (w, w=BYzero+36, BYzero+nYears) /)
-  ! write (42, '(i5, 50f8.2)') 5, 10**LPBY(36:nYears,5)
-  ! if ( LPBY(44,5) < -5.0 ) then
-    ! write (42, '("self ", 50f8.2)') 10**LPBY(36:nYears,1)
-    ! write (42, '("up   ", 50f8.2)') 10**BYup(36:nYears,2)
-    ! write (42, '("down ", 50f8.2)') 10**BYdown(36:nYears,2)
-    ! write (42, '("sibs ", 50f8.2)') 10**BYsibs(36:nYears)
-    ! close(42)
-! !    stop
-  ! ! do w=1,5
-    ! ! write (42, '(i5, 50f8.2)') w, 10**LPBY(36:nYears,w)
-  ! ! enddo 
-  ! endif
-! endif
-
 
 end subroutine setEstBY
 
@@ -13751,6 +13739,7 @@ do m=1,2
   if (Par(m)==0)  cycle
   call getEstBY(Par(m), m, 3, BYP(:,m))  ! self + exact + parents + GP
   do g=1,2
+    if (GP(m,g)==0)  cycle                       
     call getEstBY(GP(m,g), g, 3, BYG(:,m,g))
   enddo
 enddo
@@ -13770,14 +13759,14 @@ do m=1,2
 enddo
 
 BYA = zero
-!BYA(1,:) = LOG10(zero)  ! cannot calculate for year 1 
+BYA(1,:) = LOG10(zero)  ! has parents --> cannot be born in year 1
 do y=2,nYears  
   do m=1,2
     if (Par(m)==0)  cycle
     if (y > Ylast) then
       BYA(y,:) = LOG10(zero)  ! year y after parents last possible year of reprod
-    else if (ANY(BYP(m,:)>=1D0)) then  ! parent has exact BY
-      tmpBY = MAXLOC(BYP(m,:), DIM=1)   ! Par(m) may be dummy --> cannot use BY(Par(m)) 
+    else if (ANY(BYP(:,m)>=1D0)) then  ! parent has exact BY
+      tmpBY = MAXLOC(BYP(:,m), DIM=1)   ! Par(m) may be dummy --> cannot use BY(Par(m)) 
       BYA(y,:) = BYA(y,:) + getAP(y - tmpBY, 1, m, 0)
     else  
       ! weighed sum over all possible parent birth years      
@@ -13809,7 +13798,6 @@ do y=2,nYears
 enddo
 
 end subroutine CalcBYup
-
 
 ! ######################################################################
 
@@ -13857,7 +13845,7 @@ do y=1, nYears-1   ! A's BY
     if (BYA(y,2) < -HUGE(0.0D0)) exit  ! e.g. i born in/prior to year y - no need to look at other offspr
   enddo
 enddo
-!BYA(nYears,:) = LOG10(zero)
+BYA(nYears,:) = LOG10(zero)  ! has offspring --> cannot be born in last year
 
 
 ! if (A==118 .and. BYA(44,2) < -3.0) then
@@ -13919,7 +13907,7 @@ do m=1,2
 enddo
 
 BYA = zero
-do y=1, nYears-1 
+do y=1, nYears
   do m=1,3
     if (nSibs(m) == 0) cycle
     do i=1, nSibs(m)
@@ -13985,6 +13973,8 @@ double precision, intent(OUT) :: ALR
 integer :: AB(2), kAB(2), x, y, i
 double precision :: BYLR(nYears, 2), ALRp, ALRtmp(nYears, nYears)
 
+if (.not. ANY((/-1,1,2,3,4,5,6/) == focal))  call Erstop('CalcAgeLR: illegal focal', .TRUE.)                                                                                            
+
 AB = (/ A, B /)
 kAB = (/ kA, kB /)  
 ALR = zero
@@ -14003,6 +13993,7 @@ else if (A>0 .and. B>0) then
       return
     endif
   endif
+
   if ((focal==2 .or. focal==3) .and. (any(Parent(A,:)/=0) .or. any(Parent(B,:)/=0))) then
     do i=1,2
       do x=1,2

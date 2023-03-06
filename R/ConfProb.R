@@ -199,7 +199,7 @@ EstConf <- function(Pedigree = NULL,
     args.sim[["Err"]] <- NULL    # common confusion, otherwise fuzy matching with 'ErrorFM'.
   }
 
-  Ped.ref <- Pedigree[,1:3]
+  Ped.ref <- PedPolish(Pedigree, KeepAllColumns=FALSE)
   if (any(substr(unlist(Ped.ref),1,6) %in% c("sim_F0", "sim_M0"))) {
     stop("Please don't use 'sim_F' or 'sim_M' in reference pedigree")
   }
@@ -283,13 +283,14 @@ EstConf <- function(Pedigree = NULL,
   if (nCores>1) {
     cl <- parallel::makeCluster(nCores)
     AllOUT <- parallel::parLapply(cl, X=seq.int(nSim), fun=SimInfer,
-                                  RefPedigree = Pedigree,
+                                  RefPedigree = Ped.ref,
                                   args.sim, LifeHistData, args.seq,
                                   quiet.EC=TRUE, ParSib)
     #                                  chunk.size=1)
     parallel::stopCluster(cl)
   } else {
-    AllOUT <- plyr::llply(seq.int(nSim), SimInfer, RefPedigree = Pedigree,
+    AllOUT <- plyr::llply(seq.int(nSim), .fun=SimInfer,
+                          RefPedigree = Ped.ref,
                           args.sim, LifeHistData, args.seq,
                           quiet.EC, ParSib)
   }

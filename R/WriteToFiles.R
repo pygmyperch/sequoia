@@ -95,6 +95,8 @@ writeSeq <- function(SeqList,
       stop(paste("Number of SNPs according to Specs differs from number of rows in GenoM (",
                  SeqList$Specs$NumberSnps, "vs", ncol(GenoM), ")"))
     }
+  } else if (OutFormat == "txt") {
+    warning("No GenoM specified")
   }
 
   # write excel file ----
@@ -223,19 +225,25 @@ writeSeq <- function(SeqList,
 
 
 #==========================================================================
-write.parents <- function(ParentDF, LifeHistData, GenoM, file="Parents.txt") {
+write.parents <- function(ParentDF, LifeHistData, GenoM=NULL, file="Parents.txt") {
   names(ParentDF)[1:3] <- c("id", "dam", "sire")
   names(LifeHistData) <- c("ID", "Sex", "BirthYear")
 
+  if (!is.null(GenoM)) {
+    gID <- rownames(GenoM)
+  } else {
+    gID <- ParentDF$id
+  }
+
   Par <- MergeFill(ParentDF,
-                   data.frame(id = rownames(GenoM),
+                   data.frame(id = gID,
                               LLRdam = NA, LLRsire = NA, LLRpair = NA,
                               OHdam = NA, OHsire = NA, MEpair = NA,
                               rowid = NA, rowdam = NA, rowsire = NA,
                               stringsAsFactors=FALSE),
                    by = "id", all = TRUE)
   rownames(Par) <- as.character(Par$id)
-  Par <- Par[rownames(GenoM), ]    # merge ignores sort=FALSE
+  Par <- Par[gID, ]    # merge ignores sort=FALSE
   for (x in c("dam", "sire")) Par[is.na(Par[, x]), x] <- "NA"
   for (x in c("LLRdam", "LLRsire", "LLRpair")) {
     Par[is.na(Par[, x]), x] <- 999
@@ -244,10 +252,16 @@ write.parents <- function(ParentDF, LifeHistData, GenoM, file="Parents.txt") {
     Par[is.na(Par[, x]), x] <- -9
   }
   for (x in c("id", "dam", "sire")) {
-    Par[, paste0("row", x)] <- as.numeric(factor(Par[,x], levels=rownames(GenoM)))
+    Par[, paste0("row", x)] <- as.numeric(factor(Par[,x], levels=gID))
     Par[is.na(Par[, paste0("row", x)]), paste0("row", x)] <- 0
   }
-  if (any(is.na(Par$id))) stop("Some id's in PedigreePar do not occur in GenoM!")
+  if (any(is.na(Par$id))) {
+    if (!is.null(GenoM)) {
+      stop("Some id's in PedigreePar do not occur in GenoM!")
+    } else {
+      stop("Some id's in PedigreePar are <NA>")
+    }
+  }
   writeColumns(Par, file = file, row.names=FALSE)
 }
 
