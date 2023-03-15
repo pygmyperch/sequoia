@@ -103,7 +103,8 @@
 #'   may boost assignments but increased risk of erroneous assignments). Used
 #'   during full reconstruction only.
 #' @param args.AP list with arguments to be passed on to
-#'   \code{\link{MakeAgePrior}}.
+#'   \code{\link{MakeAgePrior}}, e.g. `Discrete` (non-overlapping generations),
+#'   `MinAgeParent`, `MaxAgeParent`.
 #' @param CalcLLR  TRUE/FALSE; calculate log-likelihood ratios for all assigned
 #'   parents (genotyped + dummy; parent vs. otherwise related). Time-consuming
 #'   in large datasets. Can be done separately with \code{\link{CalcOHLLR}}.
@@ -449,7 +450,7 @@ sequoia <- function(GenoM = NULL,
     if (Module=="ped")  PARAM$MaxSibIter <- 42
   } else {
     if (is.logical(UseAge))   UseAge <- ifelse(UseAge, "yes", "no")
-    if ((Herm != "no" | any(LifeHistData$Sex==4)) & length(DummyPrefix)==2)
+    if ((Herm != "no" | any(LifeHistData$Sex==4, na.rm=TRUE)) & length(DummyPrefix)==2)
       DummyPrefix <- c(DummyPrefix, "H")
 
     PARAM <- namedlist(dimGeno = dim(GenoM),
@@ -483,7 +484,7 @@ sequoia <- function(GenoM = NULL,
 
 
   # hermaprhodites ----
-  if (any(LifeHistData$Sex==4) && PARAM$Herm == "no") {  #!grepl("herm", PARAM$Complex)) {
+  if (any(LifeHistData$Sex==4, na.rm=TRUE) && PARAM$Herm == "no") {  #!grepl("herm", PARAM$Complex)) {
     if (!quietR) message("\nDetected hermaphrodites (sex=4), changing Herm to 'A'\n")
 #    PARAM$Complex <- "herm"
     PARAM$Herm <- "A"

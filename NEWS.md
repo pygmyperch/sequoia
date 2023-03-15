@@ -1,3 +1,11 @@
+# sequoia 2.5.1
+
+### Bug fixes & minor changes
+- fix error 'sibship number out of bounds'
+- fix error when `LifeHistData$Sex` includes `NA`
+- fix several minor bugs affecting rare cases
+
+
 # sequoia 2.5.0
 
 ### New features & major changes
