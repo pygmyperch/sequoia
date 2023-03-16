@@ -3516,6 +3516,7 @@ endif
 !~~~  FA/HA  ~~~~~~~
 LLtmpAU = missing
 ALRAU = missing
+LLFAx = missing
 ! call CalcAgeLR(A,k, B,k, 0, 6, .TRUE., ALR(6))
 do i=1,2   ! A, B
   do x=1,3  ! mat, pat, FS
@@ -3526,9 +3527,9 @@ do i=1,2   ! A, B
     endif
     if (ALRAU(i,x)/=impossible .and. .not. (Complx==0 .and. x<3)) then
       call PairUA(AB(i), AB(3-i),k, x, LLtmpAU(i,x))
+      if (Complx/=1)  call FAx(AB(i), AB(3-i), LLFAx(i))  ! A inbred                                              
     endif
-  enddo
-  call FAx(AB(i), AB(3-i), LLFAx(i))  ! A inbred
+  enddo  
 enddo
 
 LLg(5) = MaxLL((/LLtmpAU(:,3), LLFAx/))
