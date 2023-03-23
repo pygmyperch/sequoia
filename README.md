@@ -60,3 +60,7 @@ via `vignette("sequoia")` or `help(package="sequoia")`.
 
 ## Not R 
 A stand-alone Fortran version can be found in [sequoia_notR](https://github.com/JiscaH/sequoia_notR) . It does not require the genetic data to pass through R, which may be nearly impossible for very large datasets. Note that it does not offer all the features of the R package, as detailed in its manual. Its version will typically be functionally identical to the latest R package development version. 
+
+
+## More R functions
+A collection of additional sequoia-related R functions can be found in [sequoiaExtra](https://github.com/JiscaH/sequoiaExtra). 
