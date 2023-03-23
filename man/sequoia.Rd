@@ -116,7 +116,8 @@ may boost assignments but increased risk of erroneous assignments). Used
 during full reconstruction only.}
 
 \item{args.AP}{list with arguments to be passed on to
-\code{\link{MakeAgePrior}}.}
+\code{\link{MakeAgePrior}}, e.g. `Discrete` (non-overlapping generations),
+`MinAgeParent`, `MaxAgeParent`.}
 
 \item{CalcLLR}{TRUE/FALSE; calculate log-likelihood ratios for all assigned
 parents (genotyped + dummy; parent vs. otherwise related). Time-consuming
@@ -364,7 +365,6 @@ Huisman, J. (2017) Pedigree reconstruction from SNP data:
   \item \code{\link{GetMaybeRel}} to find pairs of potential relatives,
   \item \code{\link{SummarySeq}} and \code{\link{PlotAgePrior}} to visualise
   results,
-  \item \code{\link{sequoia_report}} for a summary report of input + results,
   \item \code{\link{GetRelM}} to turn a pedigree into pairwise relationships,
   \item \code{\link{CalcOHLLR}} to calculate Mendelian errors and LLR for any
    pedigree,

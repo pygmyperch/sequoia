@@ -249,7 +249,6 @@
 #'   \item \code{\link{GetMaybeRel}} to find pairs of potential relatives,
 #'   \item \code{\link{SummarySeq}} and \code{\link{PlotAgePrior}} to visualise
 #'   results,
-#'   \item \code{\link{sequoia_report}} for a summary report of input + results,
 #'   \item \code{\link{GetRelM}} to turn a pedigree into pairwise relationships,
 #'   \item \code{\link{CalcOHLLR}} to calculate Mendelian errors and LLR for any
 #'    pedigree,

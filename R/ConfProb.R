@@ -127,7 +127,7 @@
 #' # Example for parentage assignment only
 #' conf_grif <- EstConf(Pedigree = SeqOUT_griffin$Pedigree,
 #'                LifeHistData = SeqOUT_griffin$LifeHist,
-#'                args.sim = list(nSnp = 100,   # no. in actual data, or what-if
+#'                args.sim = list(nSnp = 200,   # no. in actual data, or what-if
 #'                                SnpError = 5e-3,  # best estimate, or what-if
 #'                                CallRate=0.8,     # from SnpStats()
 #'                                ParMis=c(0.39, 0.20)),  # calc'd above

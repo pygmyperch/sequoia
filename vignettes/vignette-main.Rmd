@@ -1308,13 +1308,17 @@ When new individuals have been genotyped, such as a new cohort of offspring, it 
 
 ## Results differ from COLONY
 
-The type of data for which COLONY is most suitable is a single cohort with putative full- and half-siblings, with none of the parents genotyped. When running the same dataset with `sequoia` and default parameter settings, the results will typically differ, for the following reasons:
+Sequoia will typically produce a more conservative pedigree than COLONY, for various reasons:
 
-- COLONY only considers full sibling, half sibling, or unrelated. `sequoia` also considers full- or half- avuncular, grand-parental, etc., unless you specify that all individuals are from a single cohort, i.e. all individuals have the exact same birth year. 
-- `sequoia` by default also considers double relationships, e.g. paternal half-siblings that are also maternal half-cousins, with a relatedness inbetween full and half siblings. To ignore these possibilities, use parameter `Complex='simp'` when running `sequoia()`. 
-- When no parents of known sex can be assigned, there is in `sequoia` no way of differentiating between maternal and paternal half-siblings, and none are assigned (although they can be found with `GetMaybeRel()`. In COLONY candidate mothers and fathers can be specified, but this option is not available in `sequoia` (yet?). 
+- COLONY only considers whether individuals are full siblings, half siblings, or unrelated, while `sequoia` also considers full- or half- avuncular (aunts and uncles and their nieces and nephews), and grand-parental. 
+These alternative relationships are impossible among individuals born in the same year when generations do not overlap (`args.AP=list(Discrete=TRUE)`). If all samples are from a single birth year, this is automatically assumed. 
+- `sequoia` also considers double relationships, e.g. paternal half-siblings that are also maternal half-cousins, with a relatedness inbetween full and half siblings. These may be erroneously assigned as full siblings by COLONY when present, but their consideration may cause true full siblings to be only assigned as half-siblings, especially when there is only a moderate amount of genetic data. To ignore double and inbred relationships, use `Complex='simp'`. 
+- `sequoia` considers third degree relationships, such as full cousins. Again, these may result in false positives by COLONY, while their consideration may result in false negatives by `sequoia`. This can not be turned off. 
+- When no parents of known sex can be assigned, there is no way in `sequoia` to differentiate between maternal and paternal half-siblings, and none are assigned (although they may be identified with `GetMaybeRel()`. In COLONY, candidate mothers and fathers can be specified, but this option is not available in `sequoia` (yet?). 
 - When a relationship is uncertain, COLONY will include it in the output with a low confidence probability. `sequoia` only makes assignments of which it is very sure, as the sequential nature of the algorithm may otherwise result in a snowball effect of incorrect assignments. 
  
+You can get `sequoia`'s 'opinion' on a COLONY reconstructed pedigree (or any other pedigree) with `CalcOHLLR()`, which for every assigned parent gives the log-likelihood ratio between being parent-offspring with the focal individual, versus otherwise related. You may also use `CalcPairLL()` for a specific set of pairs of individuals to calculate their likelihoods to be parent-offspring, full siblings, ... , and investigate how these likelihoods change when changing the ageprior or with `Complex='simp'`. 
+
  
 
 # References
