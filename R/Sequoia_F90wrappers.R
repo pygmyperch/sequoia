@@ -32,8 +32,6 @@
 #'
 #' @useDynLib sequoia, .registration = TRUE
 #'
-#' @importFrom plyr dlply
-#'
 #' @keywords internal
 
 SeqParSib <- function(ParSib,
@@ -136,8 +134,8 @@ SeqParSib <- function(ParSib,
                    "pat" = table(Pedigree$sire[NumPed$sire < 0]))
     MaxOff <- max(unlist(NumOff))
 
-    OffIDs <- c(dlply(Pedigree, "dam", function(df) df$id),
-                dlply(Pedigree, "sire", function(df) df$id))
+    OffIDs <- c(plyr::dlply(Pedigree, "dam", function(df) df$id),
+                plyr::dlply(Pedigree, "sire", function(df) df$id))
     OffIDs <- OffIDs[c(names(NumOff[[1]]), names(NumOff[[2]]))]
     # includes dummy offspring
 
@@ -150,7 +148,7 @@ SeqParSib <- function(ParSib,
                       Sex = rep(1:2, times=TMP$nd),
                       VtoM(TMP$dumbyrf, sum(TMP$nd),3, NgOdd),
                       unlist(NumOff),
-                      laply(OffIDs, .fun = function(x) x[1:MaxOff], .drop=FALSE),
+                      plyr::laply(OffIDs, .fun = function(x) x[1:MaxOff], .drop=FALSE),
                       row.names=NULL)
     names(DummyIDs)[5:ncol(DummyIDs)] <- c("BY.est", "BY.lo", "BY.hi", "NumOff",
                                            paste0("O", 1:MaxOff))
@@ -199,7 +197,7 @@ SeqParSib <- function(ParSib,
   }
 
   rownames(Pedigree) <- 1:nrow(Pedigree)
-  
+
   TotLik <- TMP$totll[seq_len(sum(TMP$totll!=0))]
   names(TotLik) <- seq_along(TotLik) -1
 

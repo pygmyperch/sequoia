@@ -16,7 +16,7 @@ j = 0
 do l=1,nSnp
   do i=1, nInd
     j = j+1
-    if (GenoFR(j)/=-9) then
+    if (GenoFR(j)>=0) then
       Genos(l,i) = GenoFR(j) +1
     endif
   enddo

@@ -135,6 +135,16 @@ static R_NativePrimitiveArgType relType[] = {
   INTSXP,
 };
 
+static R_NativePrimitiveArgType esterType[] = {
+  INTSXP,  // 1 Ng  
+  INTSXP,  // 2 nl
+  INTSXP,  // 3 genoV
+  INTSXP,  // 4 parensv
+  INTSXP,  // 5 dups
+  REALSXP, // 6 errIN
+  REALSXP, // 7 totLL
+  REALSXP, // 8 cntobsact
+};
 
 extern void F77_NAME(makeped)(int *ng, int *specsintglb, int *specsintmkped,
   double *specsdbl, double *errv, int *genofr, int *sexrf, int *byrf, int *lyrf,
@@ -169,6 +179,9 @@ extern void F77_NAME(mkerrors)(int *nind, int *nsnp, int *genofr, double *eprobf
 
 extern void F77_NAME(getrel)(int *nind, int *pedrf, int *nrel, int *relv);
 
+extern void F77_NAME(ester)(int *ng, int *nl, int *genov, int *parentsv, int *dups,
+  double *errin, double *totll, double *cntobsact);
+  
 
 static const R_FortranMethodDef FortranEntries[] = {
 	{"makeped", (DL_FUNC) &F77_NAME(makeped), 19, psType},
@@ -180,6 +193,7 @@ static const R_FortranMethodDef FortranEntries[] = {
   {"deallocall", (DL_FUNC) &F77_NAME(deallocall), 0},
 	{"mkerrors", (DL_FUNC) &F77_NAME(mkerrors), 4, eType},
   {"getrel", (DL_FUNC) &F77_NAME(getrel), 4, relType},
+  {"ester", (DL_FUNC) &F77_NAME(ester), 8, esterType},
   {NULL, NULL, 0, NULL}
 };
 

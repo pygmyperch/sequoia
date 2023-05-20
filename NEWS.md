@@ -1,3 +1,18 @@
+# sequoia 2.6.0
+- add specification of assumed genotyping error rate via length 3 vector: hom|hom,
+  het|hom, hom|het
+- expand `CalcPairLL` helpfile 
+
+# sequoia 2.5.6
+- fixes CRAN pretest NOTES, including broken links in vignette
+
+# sequoia 2.5.4
+- add updated vignettes (main + age); accidentally included old versions in 2.5.3
+- fixed bug in `CalcBYprobs`, which caused Year.last to be ignored
+
+# sequoia 2.5.3
+- fixes CRAN error 'DLL requires the use of native symbols'
+
 # sequoia 2.5.1
 
 ### Bug fixes & minor changes
