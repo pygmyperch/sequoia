@@ -101,7 +101,7 @@ CheckLH <- function(LifeHistData, gID = NA, sorted=TRUE, returnDups = FALSE)
       stop(sex_msg, call.=FALSE)
     } else {
       warning(sex_msg, "\n These values are converted to <NA>/3: ", setdiff(LifeHistData$Sex, 1:4),
-              call.=FALSE, immediate=TRUE)
+              call.=FALSE, immediate.=TRUE)
       LifeHistData$Sex[!LifeHistData$Sex %in% c(1:4)] <- 3
     }
   }

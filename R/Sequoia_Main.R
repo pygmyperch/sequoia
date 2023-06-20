@@ -571,9 +571,10 @@ sequoia <- function(GenoM = NULL,
                                           quiet = !(!quietR & Module=="ped")),
                                      args.AP)),
                            error = function(e) {
-                             message("AgePrior: error!")
-                             return(ParList)
+                             message("AgePrior error! \n", e)
+                             return(NA)
                            })
+    if (all(is.na(AgePriors)))  return(ParList)
 
   } else if ("AgePriors" %in% names(SeqList) & !"PedigreePar" %in% names(SeqList)) {
     if(!quietR)  message("using AgePriors in SeqList again")
