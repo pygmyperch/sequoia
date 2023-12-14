@@ -18,6 +18,7 @@ sequoia(
   Herm = "no",
   UseAge = "yes",
   args.AP = list(Flatten = NULL, Smooth = TRUE),
+  mtSame = NULL,
   CalcLLR = TRUE,
   quiet = FALSE,
   Plot = NULL,
@@ -113,6 +114,12 @@ during full reconstruction only.}
 \code{\link{MakeAgePrior}}, e.g. `Discrete` (non-overlapping generations),
 `MinAgeParent`, `MaxAgeParent`.}
 
+\item{mtSame}{\strong{NEW} matrix indicating whether individuals (might)
+have the same mitochondrial haplotype (1), and may thus be matrilineal
+relatives, or not (0). Row names and column names should match IDs in
+`GenoM`. Not all individuals need to be included and order is not
+important. Please report any issues. For details see the mtDNA vignette.}
+
 \item{CalcLLR}{TRUE/FALSE; calculate log-likelihood ratios for all assigned
 parents (genotyped + dummy; parent vs. otherwise related). Time-consuming
 in large datasets. Can be done separately with \code{\link{CalcOHLLR}}.}
@@ -132,12 +139,12 @@ the unavoidable default up to version 2.4.1. Otherwise only excluded are
 (very nearly) monomorphic SNPs, SNPs scored for fewer than 2 individuals,
 and individuals scored for fewer than 2 SNPs.}
 
-\item{ErrFlavour}{\strong{DEPRECATED, use length 3 vector for \code{Err}}
-function that takes \code{Err} (single number) as input, and returns a 3x3
-matrix of observed (columns) conditional on actual (rows) genotypes, or
-choose from inbuilt options 'version2.0', 'version1.3', or 'version1.1',
-referring to the sequoia version in which they were the default. Ignored if
-\code{Err} is a matrix. See \code{\link{ErrToM}}.}
+\item{ErrFlavour}{\strong{DEPRECATED, (use length 3 vector for \code{Err}
+instead)} function that takes \code{Err} (single number) as input, and
+returns a 3x3 matrix of observed (columns) conditional on actual (rows)
+genotypes, or choose from inbuilt options 'version2.0', 'version1.3', or
+'version1.1', referring to the sequoia version in which they were the
+default. Ignored if \code{Err} is a matrix. See \code{\link{ErrToM}}.}
 
 \item{MaxSibIter}{\strong{DEPRECATED, use \code{Module}} number of iterations
 of sibship clustering, including assignment of grandparents to sibships and
@@ -300,6 +307,11 @@ Alternatively, a true parent will not be assigned when it is:
 While every effort has been made to ensure that sequoia provides what it
 claims to do, there is absolutely no guarantee that the results provided are
 correct. Use of sequoia is entirely at your own risk.
+}
+
+\section{Website}{
+
+https://jiscah.github.io/
 }
 
 \examples{

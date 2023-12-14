@@ -108,11 +108,15 @@
 #' ErM
 #' ErrToM(ErM, Return = 'vector')
 #'
-#' ErrToM(Err = 0.05, flavour = function(E) {   # Whalen, Gorjanc & Hickey 2018
+#'
+#' # use error matrix from Whalen, Gorjanc & Hickey 2018
+#' funE <- function(E) {
 #'  matrix(c(1-E*3/4, E/2, E/4,
 #'           E/4, 1-2*E/4, E/4,
 #'           E/4, E/2, 1-E*3/4),
-#'           3,3, byrow=TRUE)  })
+#'           3,3, byrow=TRUE)  }
+#' ErrToM(Err = 0.05, flavour = funE)
+#' # equivalent to:
 #' ErrToM(Err = c(0.05/4, 0.05/2, 0.05/4))
 #'
 #' @export

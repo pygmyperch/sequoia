@@ -78,12 +78,12 @@ vector or 3x3 matrix; see details below. The error rate is presumed
 constant across SNPs, and missingness is presumed random with respect to
 actual genotype. Using \code{Err} >5\% is not recommended.}
 
-\item{ErrFlavour}{\strong{DEPRECATED, use length 3 vector for \code{Err}}
-function that takes \code{Err} (single number) as input, and returns a 3x3
-matrix of observed (columns) conditional on actual (rows) genotypes, or
-choose from inbuilt options 'version2.0', 'version1.3', or 'version1.1',
-referring to the sequoia version in which they were the default. Ignored if
-\code{Err} is a matrix. See \code{\link{ErrToM}}.}
+\item{ErrFlavour}{\strong{DEPRECATED, (use length 3 vector for \code{Err}
+instead)} function that takes \code{Err} (single number) as input, and
+returns a 3x3 matrix of observed (columns) conditional on actual (rows)
+genotypes, or choose from inbuilt options 'version2.0', 'version1.3', or
+'version1.1', referring to the sequoia version in which they were the
+default. Ignored if \code{Err} is a matrix. See \code{\link{ErrToM}}.}
 
 \item{Tassign}{minimum LLR required for acceptance of proposed relationship,
 relative to next most likely relationship. Higher values result in more

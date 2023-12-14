@@ -1,3 +1,24 @@
+# sequoia 2.8
+- fixes bugs introduced since version 2.5, plus various other edits in source code to improve assignment rate
+- fix bug in `CalcMaxMismatch`: OH with both parents counts as 2 mismatches (was 1)
+
+
+# sequoia 2.7.3
+- fix bug causing some negative parental LLRs, and possibly some non-assignments
+- speed increase for lower call rates
+- add OutFormat 'ped' to `GenoConvert`, and fix bug with OutFormat 'col'
+
+
+# sequoia 2.7.2
+- change `EstConf` example to nSim=1 to ensure runtime < 5 sec to pass CRAN check
+
+# sequoia 2.7.1
+- add `mtSame`: specify if individuals have the same or different mitochondrial haplotype
+- improved parentage assignment performance when there are many genetically similar
+candidate parents
+- fixes CRAN issue 'cannot use Fortran's random number generator'
+
+
 # sequoia 2.6.0
 - add specification of assumed genotyping error rate via length 3 vector: hom|hom,
   het|hom, hom|het

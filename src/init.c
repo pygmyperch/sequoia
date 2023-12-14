@@ -16,15 +16,16 @@ static R_NativePrimitiveArgType psType[] = {
   INTSXP,  // 8 BYRF
   INTSXP,  // 9 LYRF
   REALSXP, // 10 APRF
-  INTSXP,  // 11 parentsRF
-  REALSXP, // 12 LrRF
-  INTSXP,  // 13 OhRF
-  INTSXP,  // 14 Nd
-  INTSXP,  // 15 DumParRF
-  REALSXP, // 16 DumLrRF
-  INTSXP,  // 17 DumBYRF
+  INTSXP,  // 11 mtdif_rf
+  INTSXP,  // 12 parentsRF
+  REALSXP, // 13 LrRF
+  INTSXP,  // 14 OhRF
+  INTSXP,  // 15 Nd
+  INTSXP,  // 16 DumParRF
+  REALSXP, // 17 DumLrRF
+  INTSXP,  // 18 DumBYRF
   REALSXP, // 19 TotLL
-	REALSXP, // 19 AP_OUT
+	REALSXP, // 20 AP_OUT
 };
 
 static R_NativePrimitiveArgType dupType[] = {
@@ -125,6 +126,7 @@ static R_NativePrimitiveArgType eType[] = {
   INTSXP,
   INTSXP,
   REALSXP,
+  REALSXP,
 };
 
 
@@ -148,7 +150,7 @@ static R_NativePrimitiveArgType esterType[] = {
 
 extern void F77_NAME(makeped)(int *ng, int *specsintglb, int *specsintmkped,
   double *specsdbl, double *errv, int *genofr, int *sexrf, int *byrf, int *lyrf,
-	double *aprf, int *parentsrf, double *lrrf, int *ohrf,
+	double *aprf, int *mtdif_rf, int *parentsrf, double *lrrf, int *ohrf,
 	int *nd, int *dumparrf, double *dumlrrf, int *dumbyrf, double *totll, double *apout);
 
 extern void F77_NAME(duplicates)(int *ng, int *specsint, double *specsdbl,
@@ -175,7 +177,8 @@ extern void F77_NAME(getbyprobs)(int *ng, int *nx, int *nap, int *nyearsin, int 
 
 extern void F77_NAME(deallocall)(void);
 
-extern void F77_NAME(mkerrors)(int *nind, int *nsnp, int *genofr, double *eprobfr);
+extern void F77_NAME(mkerrors)(int *nind, int *nsnp, int *genofr, double *eprobfr,
+  double *randomv);
 
 extern void F77_NAME(getrel)(int *nind, int *pedrf, int *nrel, int *relv);
 
@@ -184,14 +187,14 @@ extern void F77_NAME(ester)(int *ng, int *nl, int *genov, int *parentsv, int *du
   
 
 static const R_FortranMethodDef FortranEntries[] = {
-	{"makeped", (DL_FUNC) &F77_NAME(makeped), 19, psType},
+	{"makeped", (DL_FUNC) &F77_NAME(makeped), 20, psType},
 	{"duplicates", (DL_FUNC) &F77_NAME(duplicates), 13, dupType},
   {"findambig", (DL_FUNC) &F77_NAME(findambig), 20, ambigType},
 	{"getpedllr", (DL_FUNC) &F77_NAME(getpedllr), 16, pedLLRType},
   {"getpairll", (DL_FUNC) &F77_NAME(getpairll), 19, pairLLType},
   {"getbyprobs", (DL_FUNC) &F77_NAME(getbyprobs), 9, BYprobType},
   {"deallocall", (DL_FUNC) &F77_NAME(deallocall), 0},
-	{"mkerrors", (DL_FUNC) &F77_NAME(mkerrors), 4, eType},
+	{"mkerrors", (DL_FUNC) &F77_NAME(mkerrors), 5, eType},
   {"getrel", (DL_FUNC) &F77_NAME(getrel), 4, relType},
   {"ester", (DL_FUNC) &F77_NAME(ester), 8, esterType},
   {NULL, NULL, 0, NULL}

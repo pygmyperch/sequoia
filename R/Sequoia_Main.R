@@ -91,6 +91,11 @@
 #' @param args.AP list with arguments to be passed on to
 #'   \code{\link{MakeAgePrior}}, e.g. `Discrete` (non-overlapping generations),
 #'   `MinAgeParent`, `MaxAgeParent`.
+#' @param mtSame  \strong{NEW} matrix indicating whether individuals (might)
+#'   have the same mitochondrial haplotype (1), and may thus be matrilineal
+#'   relatives, or not (0). Row names and column names should match IDs in
+#'   `GenoM`. Not all individuals need to be included and order is not
+#'   important. Please report any issues. For details see the mtDNA vignette.
 #' @param CalcLLR  TRUE/FALSE; calculate log-likelihood ratios for all assigned
 #'   parents (genotyped + dummy; parent vs. otherwise related). Time-consuming
 #'   in large datasets. Can be done separately with \code{\link{CalcOHLLR}}.
@@ -106,12 +111,12 @@
 #'   the unavoidable default up to version 2.4.1. Otherwise only excluded are
 #'   (very nearly) monomorphic SNPs, SNPs scored for fewer than 2 individuals,
 #'   and individuals scored for fewer than 2 SNPs.
-#' @param ErrFlavour \strong{DEPRECATED, use length 3 vector for \code{Err}}
-#'   function that takes \code{Err} (single number) as input, and returns a 3x3
-#'   matrix of observed (columns) conditional on actual (rows) genotypes, or
-#'   choose from inbuilt options 'version2.0', 'version1.3', or 'version1.1',
-#'   referring to the sequoia version in which they were the default. Ignored if
-#'   \code{Err} is a matrix. See \code{\link{ErrToM}}.
+#' @param ErrFlavour \strong{DEPRECATED, (use length 3 vector for \code{Err}
+#'   instead)} function that takes \code{Err} (single number) as input, and
+#'   returns a 3x3 matrix of observed (columns) conditional on actual (rows)
+#'   genotypes, or choose from inbuilt options 'version2.0', 'version1.3', or
+#'   'version1.1', referring to the sequoia version in which they were the
+#'   default. Ignored if \code{Err} is a matrix. See \code{\link{ErrToM}}.
 #' @param MaxSibIter \strong{DEPRECATED, use \code{Module}} number of iterations
 #'   of sibship clustering, including assignment of grandparents to sibships and
 #'   avuncular relationships between sibships. Clustering continues until
@@ -253,6 +258,9 @@
 #'   Parentage assignment, sibship clustering, and beyond. Molecular Ecology
 #'   Resources 17:1009--1024.
 #'
+#' @section Website:
+#' https://jiscah.github.io/
+#'
 #' @seealso
 #' \itemize{
 #'   \item \code{\link{GenoConvert}} to read in various data formats,
@@ -356,6 +364,7 @@ sequoia <- function(GenoM = NULL,
                     Herm = "no",
                     UseAge = "yes",
                     args.AP = list(Flatten=NULL, Smooth=TRUE),
+                    mtSame = NULL,
                     CalcLLR = TRUE,
                     quiet = FALSE,
                     Plot = NULL,
@@ -429,6 +438,21 @@ sequoia <- function(GenoM = NULL,
   # keep non-genotyped IDs (for future reference); orderLH() called by SeqParSib()
   DupList <- ChkLH.L[c("DupLifeHistID", "NoLH")]
   LifeHistData <- ChkLH.L$LifeHistData   # duplicates removed, if any
+  if (!quietR) {
+    gID <- rownames(GenoM)
+    tbl_sex <- table(factor(LifeHistData$Sex[LifeHistData$ID %in% gID], levels=1:4))
+    message("There are ", tbl_sex['1'], " females, ", tbl_sex['2'], " males, ",
+            tbl_sex['3'], " individuals of unkwown sex, and ",
+            tbl_sex['4'], " hermaphrodites.")
+    range_Year <- matrix(NA,4,2, dimnames=list(c("BirthYear", "BY.min", "BY.max", 'Year.last'),
+                                            c('min', 'max')))
+    for (x in rownames(range_Year)) {
+      range_Year[x,] <- range(LifeHistData[,x][LifeHistData$ID %in% gID & LifeHistData[,x] >= 0])
+    }
+    message("Exact birth years are from ", range_Year[1,1], " to ", range_Year[1,2])
+    message("Birth year min/max are from ", min(range_Year[2:3,1], na.rm=TRUE), " to ",
+            max(range_Year[2:3,2], na.rm=TRUE))
+  }
 
   utils::flush.console()    # print all warnings thus far
 
@@ -456,6 +480,8 @@ sequoia <- function(GenoM = NULL,
 
   utils::flush.console()
 
+  # check & reformat mitochondrial same/not matrix
+  mtDif <- mtSame2Dif(mtSame, gID = rownames(GenoM))
 
   # make list with parameter values (loose input or SeqList$Specs) ----
   if ("Specs" %in% names(SeqList)) {
@@ -540,7 +566,8 @@ sequoia <- function(GenoM = NULL,
 
     ParList <- SeqParSib(ParSib = "par", FortPARAM, GenoM,
                          LhIN=LifeHistData, AgePriors=AgePriors,
-                         Parents=PedParents, DumPfx = PARAM$DummyPrefix, quiet=quietR)
+                         Parents=PedParents, mtDif=mtDif,
+                         DumPfx = PARAM$DummyPrefix, quiet=quietR)
     if (Plot) {
       SummarySeq(ParList$PedigreePar, Panels="G.parents")
     }
@@ -593,8 +620,8 @@ sequoia <- function(GenoM = NULL,
     if(!quietR)  message("\n~~~ Full pedigree reconstruction ~~~")
     SibList <- SeqParSib(ParSib = "sib", FortPARAM, GenoM,
                          LhIN = LifeHistData, AgePriors = AgePriors,
-                         Parents = ParList$PedigreePar, DumPfx = PARAM$DummyPrefix,
-                         quiet = quietR)
+                         Parents = ParList$PedigreePar, mtDif=mtDif,
+                         DumPfx = PARAM$DummyPrefix, quiet = quietR)
     ParList <- ParList[names(ParList) != "AgePriorExtra"]  # else included 2x w same name
     if (Plot) {
       PlotAgePrior(SibList$AgePriorExtra)

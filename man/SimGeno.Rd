@@ -10,7 +10,7 @@ SimGeno(
   ParMis = 0.4,
   MAF = 0.3,
   CallRate = 0.99,
-  SnpError = c((5e-04/2)^2, 5e-04/2, 5e-04 * (1 - 5e-04/2)),
+  SnpError = 5e-04,
   ErrorFM = "version2.0",
   ReturnStats = FALSE,
   quiet = FALSE
@@ -99,9 +99,14 @@ For founders, i.e. individuals with no
   into a 3x3 error matrix is fully flexible and specified via \code{ErrorFM};
   see \code{link{ErrToM}} for details.
 
-  In both cases, a beta-distribution is used to simulate variation in the
-  error rate between SNPs, the shape parameter of this distribution can be
-  specified via \code{\link{MkGenoErrors}}.
+  The default values of \code{SnpError=5e-4} and \code{ErrorFM='version2.0'}
+  correspond to the length 3 vector \code{c((5e-4/2)^2, 5e-4/2,
+  5e-4*(1-5e-4/2))}.
+
+  A beta-distribution is used to simulate variation in the error rate between
+  SNPs, the shape parameter of this distribution can be specified via
+  \code{\link{MkGenoErrors}}. It is also possible to specify the error rate
+  per SNP.
 }
 
 \section{Call Rate}{

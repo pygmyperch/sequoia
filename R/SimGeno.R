@@ -71,9 +71,14 @@
 #'   into a 3x3 error matrix is fully flexible and specified via \code{ErrorFM};
 #'   see \code{link{ErrToM}} for details.
 #'
-#'   In both cases, a beta-distribution is used to simulate variation in the
-#'   error rate between SNPs, the shape parameter of this distribution can be
-#'   specified via \code{\link{MkGenoErrors}}.
+#'   The default values of \code{SnpError=5e-4} and \code{ErrorFM='version2.0'}
+#'   correspond to the length 3 vector \code{c((5e-4/2)^2, 5e-4/2,
+#'   5e-4*(1-5e-4/2))}.
+#'
+#'   A beta-distribution is used to simulate variation in the error rate between
+#'   SNPs, the shape parameter of this distribution can be specified via
+#'   \code{\link{MkGenoErrors}}. It is also possible to specify the error rate
+#'   per SNP.
 #'
 #'
 #' @section Call Rate:
@@ -137,7 +142,7 @@ SimGeno <- function(Pedigree,
                     ParMis = 0.4,
                     MAF = 0.3,
                     CallRate = 0.99,
-                    SnpError = c((5e-4/2)^2, 5e-4/2, 5e-4*(1-5e-4/2)),
+                    SnpError = 5e-4,
                     ErrorFM = "version2.0",
 					          ReturnStats = FALSE,
 					          quiet = FALSE)
@@ -432,11 +437,18 @@ MkGenoErrors <- function(SGeno,
 
 DoErrors <- function(SGeno, Act2Obs) {
    dnames <- dimnames(SGeno)
+   # Generate random numbers to determine which SNPs are erroneous (r < p)
+   # random number generation by Fortran not allowed: F90 not always supported  
+   # + may interfere with other pkgs
+   
+   randomV <- runif(n=nrow(SGeno)*ncol(SGeno), min=0, max=1)
+   
    TMP <- .Fortran(mkerrors,
                    nind = as.integer(nrow(SGeno)),
                    nsnp = as.integer(ncol(SGeno)),
                    genofr = as.integer(SGeno),
-                   eprobfr = as.double(Act2Obs))
+                   eprobfr = as.double(Act2Obs),
+                   randomv = as.double(randomV))
    return( matrix(TMP$genofr, nrow(SGeno), ncol(SGeno), dimnames=dnames) )
 }
 

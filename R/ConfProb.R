@@ -37,12 +37,20 @@
 #'   set of parents (proportion set by \code{ParMis}) is mimicked to be
 #'   non-genotyped. In addition, SNPs are assumed to segregate independently.
 #'
+#'   An experimental version offering more fine-grained control is available at
+#'   https://github.com/JiscaH/sequoiaExtra .
+#'
 #' @section Object size:
 #'   The size in Kb of the returned list can become pretty big, as each of the
 #'   inferred pedigrees is included. When running \code{EstConf} many times for
 #'   a range of parameter values, it may be prudent to save the required summary
 #'   statistics for each run rather than the full output.
 #'
+#' @section Errors:
+#'   If you have a large pedigree and try to run this function on multiple
+#'   cores, you may run into "Cannot allocate vector of size ..." errors or even
+#'   unexpected crashes: there is not enough computer memory for each separate
+#'   run. Try reducing `nCores`.
 #'
 #' @param Pedigree reference pedigree from which to simulate, dataframe with
 #'   columns id-dam-sire. Additional columns are ignored.
@@ -127,7 +135,7 @@
 #' # Example for parentage assignment only
 #' conf_grif <- EstConf(Pedigree = SeqOUT_griffin$Pedigree,
 #'                LifeHistData = SeqOUT_griffin$LifeHist,
-#'                args.sim = list(nSnp = 200,   # no. in actual data, or what-if
+#'                args.sim = list(nSnp = 150,   # no. in actual data, or what-if
 #'                                SnpError = 5e-3,  # best estimate, or what-if
 #'                                CallRate=0.8,     # from SnpStats()
 #'                                ParMis=c(0.39, 0.20)),  # calc'd above
@@ -149,6 +157,12 @@
 #'                       sort=FALSE)  # (note: merge() messes up column order)
 #' head(Ped.withConf[Ped.withConf$dam.cat=="G", ])
 #'
+#' # save output summary
+#' \dontrun{
+#' conf_griff[['Note']] <- 'You could add a note'
+#' saveRDS(conf_grif[c('ConfProb','PedComp.fwd','RunParams','RunTime','Note')],
+#'    file = 'conf_200SNPs_Err005_Callrate80.RDS')
+#' }
 #'
 #' ## P(actual FS | inferred as FS) etc.
 #' PairL <- list()
@@ -160,13 +174,21 @@
 #'                              Return="Counts")
 #' }
 #' # P(actual relationship (Ped1) | inferred relationship (Ped2))
-#' PairA <- plyr::laply(PairL, function(M)
+#' PairRel.prop.A <- plyr::laply(PairL, function(M)
 #'                      sweep(M, MARGIN='Ped2', STATS=colSums(M), FUN="/"))
-#' PairRel.prop <- apply(PairA, 2:3, mean, na.rm=TRUE)  # mean across simulations
+#' PairRel.prop <- apply(PairRel.prop.A, 2:3, mean, na.rm=TRUE) #avg across sims
 #' round(PairRel.prop, 3)
 #' # or: P(inferred relationship | actual relationship)
-#' PairA2 <- plyr::laply(PairL, function(M)
-#'                       sweep(M, MARGIN='Ped1', STATS=rowSums(M), FUN="/"))
+#' PairRel.prop2 <- plyr::laply(PairL, function(M)
+#'    sweep(M, MARGIN='Ped1', STATS=rowSums(M), FUN="/"))
+#'
+#' \dontrun{
+#' # confidence probability vs. sibship size
+#' source('https://raw.githubusercontent.com/JiscaH/sequoiaExtra/main/conf_vs_sibsize.R')
+#' conf_grif_nOff <- Conf_by_nOff(conf_grif)
+#' conf_grif_nOff['conf',,'GD',]
+#' conf_grif_nOff['N',,'GD',]
+#' }
 #'
 #' @export
 
@@ -182,7 +204,7 @@ EstConf <- function(Pedigree = NULL,
 
   # check input ----
   if (is.null(Pedigree))  stop("Please provide Pedigree")
-  if (is.null(LifeHistData))  stop("Please provide LifeHistData")
+  if (is.null(LifeHistData))  warning("Running without LifeHistData")
   if (!is.null(args.sim) & !is.list(args.sim))  stop("args.sim should be a list or NULL")
   if (!is.null(args.seq) & !is.list(args.seq))  stop("args.seq should be a list or NULL")
   if (!is.wholenumber(nSim) || nSim<1 || length(nSim)>1)
