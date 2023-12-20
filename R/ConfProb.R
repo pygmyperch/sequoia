@@ -137,10 +137,10 @@
 #'                LifeHistData = SeqOUT_griffin$LifeHist,
 #'                args.sim = list(nSnp = 150,   # no. in actual data, or what-if
 #'                                SnpError = 5e-3,  # best estimate, or what-if
-#'                                CallRate=0.8,     # from SnpStats()
+#'                                CallRate=0.9,     # from SnpStats()
 #'                                ParMis=c(0.39, 0.20)),  # calc'd above
 #'                args.seq = list(Err=5e-3, Module="par"),  # as in real run
-#'                nSim = 2,   # try-out, proper run >=20 (10 if huge pedigree)
+#'                nSim = 1,   # try-out, proper run >=20 (10 if huge pedigree)
 #'                nCores=1)
 #'
 #' # parent-pair confidence, per category (Genotyped/Dummy/None)
@@ -165,6 +165,7 @@
 #' }
 #'
 #' ## P(actual FS | inferred as FS) etc.
+#' \dontrun{
 #' PairL <- list()
 #' for (i in 1:length(conf_grif$Pedigree.inferred)) {  # nSim
 #'   cat(i, "\t")
@@ -181,6 +182,7 @@
 #' # or: P(inferred relationship | actual relationship)
 #' PairRel.prop2 <- plyr::laply(PairL, function(M)
 #'    sweep(M, MARGIN='Ped1', STATS=rowSums(M), FUN="/"))
+#' }
 #'
 #' \dontrun{
 #' # confidence probability vs. sibship size

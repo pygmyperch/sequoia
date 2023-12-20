@@ -205,6 +205,7 @@ else if (DataType == "INT") then
   call intpr(trim(message), nchar, IntData, ndata)
 else if (DataType == "NON") then
   call intpr(trim(message), nchar, IntDummy, 0) 
+!  call labelpr(trim(message), nchar)    R >= 4.0.0
 else
   call ErStop("invalid DataType for Rprint", .TRUE.)
 endif
@@ -298,7 +299,8 @@ character(len=*), intent(IN) :: message
 logical, intent(IN) :: bug
  
 call DeAllocAll
-call intpr("", 0, (/0/), 0) 
+call intpr(" ", 1, (/0/), 0) 
+!call labelpr(" ", 1)
 if (bug) then
   call rexit("  ERROR! *** "//message//" *** Please report this bug.")
 else
@@ -329,7 +331,11 @@ double precision, intent(INOUT) :: lrrf(3*ng), dumlrrf(3*ng), totll(42), &
 integer :: ParSib, MaxSibIter, i, CalcLLR, AgeEffect, Tmax, k, s, x, m, j, IndBYmm(3), &
   DumBYmm(3, ng/2, 2)
 integer, parameter :: million = 1E6
-double precision :: AP_TMP(3*MaxMaxAgePO,5,3), LLR_parent(ng,3), LLR_GP(3, ng/2, 2)
+double precision, allocatable :: AP_TMP(:,:,:), LLR_parent(:,:), LLR_GP(:,:,:)
+
+allocate(AP_TMP(3*MaxMaxAgePO,5,3))
+allocate(LLR_parent(ng,3))
+allocate(LLR_GP(3,ng/2,2))
 
 ParSib = SpecsIntMkPed(1)
 MaxSibIter = SpecsIntMkPed(2) 
@@ -455,6 +461,10 @@ AP_TMP = 0D0
 Tmax = MIN(nYears + MaxAgePO +1, SIZE(AP_TMP, DIM=1))
 AP_TMP(1:Tmax, :, :) = AgePriorA(-MaxAgePO : (Tmax-MaxAgePO -1),:,:)
 call AAtoVd(AP_TMP, 3*MaxMaxAgePO, 5, 3, APout)
+
+deallocate(AP_TMP)
+deallocate(LLR_parent)
+deallocate(LLR_GP)
 
 call DeAllocAll
 
@@ -1166,7 +1176,11 @@ integer, intent(IN) :: genofr(ng*specsint(1)), parentsrf(2*ng), dumparrf(2*ng)
 integer, intent(INOUT) :: ohrf(3*ng), snpdboth(2*ng), sexrf(ng), byrf(3*ng), dumbyrf(3*ng)
 double precision, intent(INOUT) :: lrrf(3*ng), dumlrrf(3*ng)
 integer :: i,j,l, IndBYmm(3), k, s, CalcLLR, DumBYmm(3, ng/2, 2), LYRF(ng)
-double precision :: LLR_Parent(ng,3), LLR_GP(3, ng/2, 2),IndBYtmp(1:nYears,2,5)
+double precision :: IndBYtmp(1:nYears,2,5)
+double precision, allocatable :: LLR_Parent(:,:), LLR_GP(:,:,:)
+
+allocate(LLR_Parent(ng,3))
+allocate(LLR_GP(3, ng/2, 2))
  
 !AgeEffect = SpecsIntMkPed(2)
 CalcLLR = SpecsIntMkPed(3)
@@ -1269,6 +1283,8 @@ if (CalcLLR == 1) then
   endif
 endif
 
+deallocate(LLR_Parent)
+deallocate(LLR_GP)
 call DeAllocAll
 
 end subroutine getpedllr
@@ -1413,7 +1429,10 @@ integer, intent(IN) :: byrf(3*ng), lyrf(ng), parentsrf(2*ng)
 double precision, intent(IN) :: aprf(5*nap)
 double precision, intent(INOUT) :: byprobv(nx*nYearsIn)
 integer :: i, j, k, BYrange(Ng,2), BYrankI(Ng), dumParV(2*Ng)
-double precision :: AP_IN(MaxMaxAgePO+1, 5), BYprobM(nx, nYearsIn), BYLR(nYearsIN)
+double precision :: AP_IN(MaxMaxAgePO+1, 5), BYLR(nYearsIN)
+double precision, allocatable :: BYprobM(:,:)
+
+allocate(BYprobM(nx, nYearsIn))
 
 nInd = Ng
 maxSibSize = 500   ! TODO? make user-setable?
@@ -1469,6 +1488,7 @@ enddo
 ! matrix to vector
 call MtoVd(BYprobM, nx, nYearsIN, byprobv)
 
+deallocate(BYprobM)
 call DeAllocAll
 
 end subroutine getBYprobs
@@ -8566,7 +8586,7 @@ use Global
 implicit none
 
 integer, intent(IN) :: A, kA, OldPar(2)
-logical, intent(IN) :: ParOnly  ! T:only parents / F:also dummy parents                                                                       
+logical, intent(IN) :: ParOnly  ! T:only parents / F:also dummy parents
 integer :: NewPar(2), m, nOff, sxOff(maxSibSize), Off(maxSibSize), x
 
 if (Complx /= 0)  return
@@ -14971,7 +14991,10 @@ implicit none
 integer, intent(IN) :: A, kA
 double precision, intent(OUT) :: BYA(nYears, 2)   ! D2: exact BY only; all BY
 integer :: nOff, Offspr(maxSibSize), sxOff(maxSibSize), y, x, i, tmpBY
-double precision :: BYO(nYears, maxSibSize), tmpX(nYears)
+double precision :: tmpX(nYears)
+double precision, allocatable :: BYO(:,:)
+
+allocate(BYO(nYears, maxSibSize))
 
 call getOff(A,kA, .TRUE., nOff, Offspr, sxOff)
 if (nOff == 0) then
@@ -15006,6 +15029,8 @@ do y=1, nYears-1   ! A's BY
     if (BYA(y,2) < -HUGE(0.0D0)) exit  ! e.g. i born in/prior to year y - no need to look at other offspr
   enddo
 enddo
+
+deallocate(BYO)
 
 end subroutine CalcBYdown
 
@@ -15116,7 +15141,10 @@ implicit none
 integer, intent(IN) :: A, kA, B, kB
 double precision, intent(OUT) :: AgeD
 integer :: y, x
-double precision :: pBY(nYears, 2), ADtmp(nYears, nYears)
+double precision :: pBY(nYears, 2)
+double precision, allocatable :: ADtmp(:,:)
+
+allocate(ADtmp(nYears, nYears))
 
 if (A>0 .and. B>0) then
   if (AgeDiff(A,B) < 999) then
@@ -15140,6 +15168,8 @@ enddo
 
 AgeD = SUM(ADtmp)
 
+deallocate(ADtmp)
+
 end subroutine EstAgeDif
 
 ! #####################################################################
@@ -15152,9 +15182,11 @@ integer, intent(IN) :: A, kA, B, kB, m, focal
 logical, intent(IN) :: AllDumRel
 double precision, intent(OUT) :: ALR
 integer :: AB(2), kAB(2), x, y, i, n
-double precision :: BYLR(nYears, 2), ALRtmp(nYears, nYears), ALRm(2)
+double precision :: BYLR(nYears, 2), ALRm(2)
+double precision, allocatable :: ALRtmp(:,:)
 
 if (.not. ANY((/-1,1,2,3,4,5,6/) == focal))  call Erstop('CalcAgeLR: illegal focal', .TRUE.)                                                                                            
+allocate(ALRtmp(nYears, nYears))
 
 AB = (/ A, B /)
 kAB = (/ kA, kB /)  
@@ -15284,6 +15316,8 @@ enddo
 
 ALR = MAXVAL(ALRm)
 if (ALR < -HUGE(0.0D0) .or. ALR/=ALR)   ALR = impossible
+
+deallocate(ALRtmp)
 
 end subroutine CalcAgeLR
 
@@ -15455,7 +15489,10 @@ use Global
 implicit none
 
 integer :: i, k, s, x, y, r, n=30, BYrankI(nInd), BYrankC(nInd/2,2)
-double precision :: Lind_IN(nInd), XPr_IN(3,3,nSnp,nInd/2,2) 
+double precision :: Lind_IN(nInd)
+double precision, allocatable :: XPr_IN(:,:,:,:,:)
+
+allocate(XPr_IN(3,3,nSnp,nInd/2,2))
 
 do k=1,2
   do s=1,nC(k)
@@ -15522,6 +15559,8 @@ do x=1, MAXVAL(nC)
     call setEstBY(-s, k)
   enddo
 enddo
+
+deallocate(XPr_IN)
 
 end subroutine UpdateAllProbs
 
@@ -15668,11 +15707,14 @@ implicit none
 
 integer, intent(IN) :: s, k ! S: sibship number, k: mat(1),pat(2),unk(3)
 integer :: Sibs(ns(s,k)), UseEE(ns(s,k)), MatePar(ns(s,k)),  cat, catG, &
-  IsInbr(ns(s,k)), HasInbr(ns(s,k), ns(s,k)), AncR(2,mxA), FSX, &
+  IsInbr(ns(s,k)), AncR(2,mxA), FSX, &
   l, x, i, Ei, r, y, z, g, Ri, v, e
 double precision :: PrL(nSnp), PrY(3), PrYp(3,ns(s,k)), PrGG(3,2),&
  PrZ(3),PrXZ(3,3,2), PrE(3), PrEE(3, ns(s,k)), LPrX(3,2)
 logical :: ParIsClone(ns(s,k)), DoRsibs(maxSibSize)
+integer, allocatable :: HasInbr(:,:)
+
+allocate(HasInbr(ns(s,k), ns(s,k)))
 
 if (ALL(GpID(:,s,k)==0) .and. ALL(SibID(:,s,k)==0)) then
   CLL(s,k) = 0D0
@@ -15928,6 +15970,8 @@ if (CLL(s,k)> .001 .or. CLL(s,k)/=CLL(s,k)) then   !.or. CLL(s,k)< -HUGE(1D0)
   call Rprint("Problem: ", (/k, s, ns(s,k)/), (/0.0D0/), "INT")
   call Erstop("Invalid sibship LL - try increasing Err", .FALSE.)
 endif
+
+deallocate(HasInbr)
 
 end subroutine CalcCLL
 
@@ -17363,7 +17407,6 @@ end subroutine MtoVi
 ! #####################################################################
 
 subroutine MtoVd(M, d1, d2, V)   ! IN, OUT: double
-use Global
 implicit none
 
 integer, intent(IN) :: d1, d2
@@ -17383,7 +17426,6 @@ end subroutine MtoVd
 ! ##############################################################################
 
 subroutine AtoVi(A, d1, d2, x, V)   ! IN, OUT: integer
-use Global
 implicit none
 
 integer, intent(IN) :: d1, d2, x(2)
@@ -17405,7 +17447,6 @@ end subroutine AtoVi
 ! #####################################################################
 
 subroutine AtoVd(A, d1, d2, x, V)  ! IN, OUT: double
-use Global
 implicit none
 
 integer, intent(IN) ::  d1, d2, x(2)
@@ -17427,7 +17468,6 @@ end subroutine AtoVd
 ! #####################################################################
 
 subroutine AAtoVd(A, d1, d2, d3, V)  ! IN, OUT: double ; R-friendly RESHAPE
-use Global
 implicit none
 
 integer, intent(IN) ::  d1, d2, d3
