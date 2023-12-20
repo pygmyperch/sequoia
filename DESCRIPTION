@@ -11,6 +11,7 @@ Description: Multi-generational pedigree inference from incomplete data on
     hundreds of SNPs, including parentage assignment and sibship clustering.
     See Huisman (2017) (<DOI:10.1111/1755-0998.12665>) for more information.
 License: GPL-2
+BugReports: https://github.com/JiscaH/sequoia/issues
 URL: https://jiscah.github.io/
 LazyData: TRUE
 Imports:
