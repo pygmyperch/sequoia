@@ -14,7 +14,7 @@ CalcPairLL(
   Complex = "full",
   Herm = "no",
   Err = 1e-04,
-  ErrFlavour = "version2.0",
+  ErrFlavour = "version2.9",
   Tassign = 0.5,
   Tfilter = -2,
   quiet = FALSE,

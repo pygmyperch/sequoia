@@ -23,7 +23,7 @@ sequoia(
   quiet = FALSE,
   Plot = NULL,
   StrictGenoCheck = TRUE,
-  ErrFlavour = "version2.0",
+  ErrFlavour = "version2.9",
   MaxSibIter = 42,
   MaxMismatch = NA,
   FindMaybeRel = FALSE

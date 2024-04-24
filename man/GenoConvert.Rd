@@ -45,8 +45,7 @@ the specified OutFile filename.}
 missing data for \code{InFormat}s 'col' and 'ped' only.}
 
 \item{sep}{vector with field separator strings that will be tried on
-\code{InFile}. Ignored if package
-\code{\link[data.table:fread]{data.frable}} is present or if
+\code{InFile}. Ignored if package \pkg{data.table} is present or if
 \code{InFormat='vcf'}. The \code{OutFile} separator uses the
 \code{\link[utils]{write.table}} default, i.e. one blank space.}
 
@@ -75,10 +74,11 @@ below on how to do this for the 2-columns-per-SNP input formats.}
 \item{quiet}{suppress messages and warnings.}
 }
 \value{
-A genotype matrix in the specified output format. If 'OutFile' is
-  specified, the matrix is written to this file and nothing is returned
-  inside R. When converting to 0/1/2 format, 2 is the homozygote for the
-  minor allele, and 0 the homozygote for the major allele.
+A genotype matrix in the specified output format; the default sequoia
+  format ('seq') has 1 column per SNP coded in 0/1/2 format (major homozygote
+  /heterozygote /minor homozygote) with -9 for missing values, sample IDs in
+  row names and SNP names in column names. If 'OutFile' is specified, the
+  matrix is written to this file and nothing is returned inside R.
 }
 \description{
 Convert genotype data in various formats to sequoia's
@@ -91,7 +91,7 @@ The first two arguments are interchangeable, and can be given
   'character' and length 1, and to be the genetic data if it is a matrix or
   dataframe.
 
-  If package \code{{data.table}} is detected, \code{\link[data.table]{fread}}
+  If package \pkg{data.table} is detected, \code{\link[data.table]{fread}}
   is used to read in the data from file. Otherwise, a combination of
   \code{\link{readLines}} and \code{\link{strsplit}} is used.
 }
@@ -104,7 +104,8 @@ The following formats can be specified by \code{InFormat}:
   in 1 column per marker. Column 1 contains IDs, there is no header row.}
   \item{ped}{(PLINK) genotypes are coded as A, C, T, G, missing as 0, in 2
   columns per marker. The first 6 columns are descriptive (1:FID, 2:IID, 3 to
-  6 ignored). }
+  6 ignored). If an associated .map file exists, SNP names will be read from
+  there.}
   \item{raw}{(PLINK) genotypes are coded as 0, 1, 2, missing as NA, in 1
   column per marker. The first 6 columns are descriptive (1:FID, 2:IID, 3 to
   6 ignored), and there is a header row. This is produced by PLINK's option
@@ -114,7 +115,7 @@ The following formats can be specified by \code{InFormat}:
   \item{vcf}{(VCF) genotypes are coded as '0/0','0/1','1/1', variable number
     of header rows followed by 1 row per SNP, with various columns of
     metadata followed by 1 column per individual. Requires package
-    \code{{vcfR}}.}
+    \pkg{vcfR}.}
   \item{single}{1 column per marker, otherwise unspecified}
   \item{double}{2 columns per marker, otherwise unspecified}
   }
@@ -147,7 +148,7 @@ system("cmd", input = "plink --file mydata --extract plink.prune.in
 
 GenoM <- GenoConvert(InFile = "PlinkOUT.raw", InFormat='raw')
 # which is the same as
-genoM <- GenoConvert(PlinkOUT.raw, InFormat='single',
+GenoM <- GenoConvert(PlinkOUT.raw, InFormat='single',
                     IDcol=2, dropcol=c(1,3:6), header=TRUE)
 # (but it will complain that InFormat='single' is not consistent with .raw
 # file extension)

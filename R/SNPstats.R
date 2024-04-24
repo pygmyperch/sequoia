@@ -112,9 +112,13 @@ SnpStats <- function(GenoM,
       })
   }
 
-  rownames(OUT) <- paste0("SNP", formatC(1:nrow(OUT),
+  if (is.null(colnames(GenoM)) | all(colnames(GenoM) == paste0('V', seq_len(ncol(GenoM))))) {
+    rownames(OUT) <- paste0("SNP", formatC(1:nrow(OUT),
                                          width=ifelse(nrow(OUT)<1000, 3, 4),
                                          flag="0"))
+  } else {
+    rownames(OUT) <- colnames(GenoM)  # SNP names
+  }
   invisible( OUT )
 }
 

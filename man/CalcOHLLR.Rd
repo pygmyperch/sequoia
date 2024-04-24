@@ -12,7 +12,7 @@ CalcOHLLR(
   AgePrior = FALSE,
   SeqList = NULL,
   Err = 1e-04,
-  ErrFlavour = "version2.0",
+  ErrFlavour = "version2.9",
   Tassign = 0.5,
   Tfilter = -2,
   Complex = "full",

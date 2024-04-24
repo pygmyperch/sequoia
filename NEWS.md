@@ -1,6 +1,7 @@
 # sequoia 2.9.1
 - upgrade of `GenoConvert`: new vcf and genlight input, various bugs fixed, 
 behaviour made more consistent and clearer through additional messages.
+- retain SNP names in `GenoConvert` and `SnpStats`
 
 # sequoia 2.9.0
 - fix bug in ` MkGenoErrors` (used by `SimGeno`) causing about 3x too many hom|hom errors when `SnpError` is a single value: first beta-distributed per-SNP genotyping error rates 
