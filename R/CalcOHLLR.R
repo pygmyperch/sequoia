@@ -165,7 +165,7 @@ CalcOHLLR <- function(Pedigree = NULL,
       if (x %in% names(SeqList)) {
         if (x == "PedigreePar" & "Pedigree" %in% names(SeqList))  next
         if (x == "AgePrior" & AgePrior == FALSE)  next
-        if (!quiet)  message("using ", x, " in SeqList")
+        if (!quiet)  cli::cli_alert_info("using {x} in SeqList")
         assign(NewName[x], SeqList[[x]])
       }
     }

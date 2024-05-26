@@ -196,7 +196,7 @@ GenoConvert <- function(InData = NULL,
     stop("invalid OutFormat")
   }
 
-  if (!quiet)  message('Input format is: ', InFormat)
+  if (!quiet)  cli::cli_alert_info('Input format is: {InFormat}')
 
   if (is.na(header))
     header <- ifelse(InFormat == "raw", TRUE, FALSE)
@@ -244,7 +244,7 @@ GenoConvert <- function(InData = NULL,
   } else if (InFormat == 'vcf') {
     if (!requireNamespace("vcfR", quietly = TRUE)) {
       if (interactive() & !quiet) {
-        ANS <- readline(prompt = paste("library {vcfR} not found. Install Y/N? "))
+        ANS <- readline(prompt = cli::cli_text("package {.pkg vcfR} not found. Install Y/N? "))
         if (!substr(ANS, 1, 1) %in% c("Y", "y")) stop(call.=FALSE)
       }
       utils::install.packages("vcfR")
@@ -302,16 +302,28 @@ GenoConvert <- function(InData = NULL,
     FID <- GenoTmp[, FIDcol]
     IDs_geno <- paste(FID, IDs_geno, sep=FIDsep)
   }
-  if (any(duplicated(IDs_geno)))
-    stop("'GenoM' has duplicate IDs in ", ifelse(IDcol==0, 'rownames', paste0('column ', IDcol)),
-         " (", IDs_geno[1], ", ", IDs_geno[2], ", ..., ", utils::tail(IDs_geno,1), ").\n",
-         "Please exclude or rename these samples or specify IDcol or FIDcol (or set InFormat).")
+  if (any(duplicated(IDs_geno))) {
+    dup_msg <- paste("`GenoM` has duplicate IDs in ",
+                     ifelse(IDcol==0, 'rownames', paste0('column ', IDcol)),": ")
+    if (length(unique(IDs_geno))/length(IDs_geno) > 0.5) {
+      dup_IDs <- utils::head(IDs_geno[duplicated(IDs_geno)],3)
+      cli::cli_alert_danger(dup_msg,
+                            cli::cli_li(c(dup_IDs, "...")))
+    } else {
+      cli::cli_alert_danger(dup_msg,
+                            cli::cli_li(c(IDs_geno[1:2], "...", utils::tail(IDs_geno,1))))
+    }
+    stop("Please exclude or rename these samples, or specify `IDcol` or `FIDcol` (or set `InFormat`).")
+  }
+
+
+
 
   #~~~~~~~~~
   # drop non-genotype columns
   dropcol <- na.exclude(c(FIDcol, IDcol, dropcol))
   if (any(dropcol!=0)) {
-    if (!quiet)   message('Dropping columns: ', paste(setdiff(dropcol,0), collapse=','), ' from input')
+    if (!quiet)   cli::cli_alert_info('Dropping columns: {setdiff(dropcol,0)} from input')
     GenoTmp <- GenoTmp[, -dropcol]
   }
   GenoTmp <- as.matrix(GenoTmp)
@@ -389,7 +401,7 @@ GenoConvert <- function(InData = NULL,
                  ifelse(n.problem<=10, paste(which(sapply(Alleles, length) > 2), collapse="-"),"")))
     }
     if (any(NumAlleles ==1) & !quiet & OutFormat!='seq')
-      warning(paste("There are", sum((NumAlleles ==1)), "monomorphic SNPs"))
+      cli::cli_alert_warning(paste("There are {sum((NumAlleles ==1))} monomorphic SNPs"))
     GenoTmp2 <- sapply(1:length(minorAllele), function(i) {
       apply(GCA[,,i], 2, function(x) sum(x == minorAllele[i]))  })
 
@@ -397,7 +409,7 @@ GenoConvert <- function(InData = NULL,
     AllHom0 <- apply(GenoTmp, 2, function(x) all(na.exclude(x) == 0))
     AllHom2 <- apply(GenoTmp, 2, function(x) all(na.exclude(x) == 2))
     if ((any(AllHom0) | any(AllHom2)) & !quiet & OutFormat!='seq') {
-      warning(paste("There are", sum(AllHom0)+sum(AllHom2), "monomorphic SNPs"))
+      cli::cli_alert_warning(paste("There are {sum(AllHom0)+sum(AllHom2)} monomorphic SNPs"))
     }
 
     GenoTmp2 <- matrix(as.numeric(GenoTmp), nrow(GenoTmp))
@@ -550,19 +562,17 @@ LHConvert <- function(PlinkFile = NULL, UseFID = FALSE,
     chk <- merge(LH, LHIN, by="id")
     n.sexmismatch <- sum(chk$Sex.x != chk$Sex.y, na.rm=T)
     n.BYmismatch <- sum(chk$BirthYear.x != chk$BirthYear.y, na.rm=T)
-    if (n.sexmismatch > 0 & n.sexmismatch <= 10) {
+    if (n.sexmismatch > 0) {
       these <- with(chk, id[which(!is.na(Sex.x) & !is.na(Sex.y) & Sex.x!=Sex.y)])
-      warning(paste("There are", n.sexmismatch, "sex mismatches: ",
-                    paste(these, collapse=", ")))
-    } else if (n.sexmismatch>10) {
-      warning(paste("There are", n.sexmismatch, "sex mismatches"))
+      cli::cli_alert_warning("There are {n.sexmismatch} sex mismatches: ")
+      cli::cli_li(these[1:min(length(these), 3)])
+      if (length(these) > 3)  cli::cli_li("...")
     }
-    if (n.BYmismatch > 0 & n.BYmismatch <= 10) {
+    if (n.BYmismatch > 0) {
       these <- with(chk, id[which(!is.na(BirthYear.x) & !is.na(BirthYear.y) & BirthYear.x!=BirthYear.y)])
-      warning(paste("There are", n.BYmismatch, "birth year mismatches: ",
-                    paste(these, collapse=", ")))
-    } else if (n.BYmismatch>10) {
-      warning(paste("There are", n.BYmismatch, "BY mismatches"))
+      cli::cli_alert_warning("There are {n.BYmismatch} birth year mismatches: ")
+      cli::cli_li(these[1:min(length(these), 3)])
+      if (length(these) > 3)  cli::cli_li("...")
     }
 
     LH <- MergeFill(LH, LHIN, by="id", overwrite=TRUE, all=TRUE)

@@ -1,3 +1,8 @@
+# sequoia 2.11
+- improved assignment rate when some birth years are unknown
+- improved messages, with {cli} markup
+- a few minor bugfixes in the Fortran code
+
 # sequoia 2.9.1
 - upgrade of `GenoConvert`: new vcf and genlight input, various bugs fixed, 
 behaviour made more consistent and clearer through additional messages.
