@@ -377,7 +377,7 @@ call Initiate(Ng, SpecsIntGlb, SpecsDbl, ErrV, GenoFR, &
 
 if (quiet<1)  call rprint_status_tbl_header()
 
-if(quiet==-1)  call rprint_tbl_update_a(0, "count OH  ")
+if(quiet==-1)  call rprint_tbl_update_a(0,90)  ! "count OH  ")
 call CalcOppHomAll()   ! also calls CalcPO
 if (quiet==-1)  call rprint_status_tbl_eol()
 
@@ -410,7 +410,7 @@ endif
 
 !========================= 
 ! calculate estimated birth years + 95% CR
-if (quiet<1)  call rprint_tbl_update_a(99, "est byears")
+if (quiet<1)  call rprint_tbl_update_a(99,91) ! "est byears")
 
 BYRF = -9
 do i=1, nInd
@@ -448,7 +448,7 @@ enddo
 LLR_parent = missing
 LLR_GP = missing
 if(CalcLLR==1) then
-  if (quiet<1)  call rprint_tbl_update_a(99, "calc LLR  ")
+  if (quiet<1)  call rprint_tbl_update_a(99,92) ! "calc LLR  ")
   call rchkusr()
   call UpdateAllProbs() 
   call CalcParentLLR(LLR_parent, LLR_GP)
@@ -1221,8 +1221,7 @@ double precision, intent(IN) :: specsdbl(2), errv(9), aprf(5*specsint(8))
 integer, intent(IN) :: genofr(ng*specsint(1)), parentsrf(2*ng), dumparrf(2*ng) 
 integer, intent(INOUT) :: ohrf(3*ng), snpdboth(2*ng), sexrf(ng), byrf(3*ng), dumbyrf(3*ng)
 double precision, intent(INOUT) :: lrrf(3*ng), dumlrrf(3*ng)
-integer :: i,j,l, IndBYmm(3), k, s, CalcLLR, DumBYmm(3, ng/2, 2), LYRF(ng), i_quadraginta(40)
-double precision :: IndBYtmp(1:nYears,2,5)
+integer :: i,j,l, IndBYmm(3), k, s, CalcLLR, DumBYmm(3, ng/2, 2), LYRF(ng)
 double precision, allocatable :: LLR_Parent(:,:), LLR_GP(:,:,:)
 
 allocate(LLR_Parent(ng,3))
@@ -1560,19 +1559,19 @@ call rchkusr()
 call UpdateAllProbs()
 
 if (quiet<1) then
-  call rprint_tbl_update_a(0, 'initial   ')
+  call rprint_tbl_update_a(0,100) ! 'initial   ')
   call rprint_status_tbl_no_dots()
   call rprint_tbl_update_b()
 endif
 
 if (ANY(Parent /= 0)) then
-  if(quiet<1)  call rprint_tbl_update_a(0, 'ped check ') 
+  if(quiet<1)  call rprint_tbl_update_a(0,101) ! 'ped check ') 
   call CheckPedigree(.TRUE.)
   call UpdateAllProbs()
   if(quiet<1)  call rprint_tbl_update_b()
 endif
 
-if(quiet==0)  call rprint_tbl_update_a(0, 'parents   ')
+if(quiet==0)  call rprint_tbl_update_a(0,102) ! 'parents   ')
 
 !============================
 ! get birthyear ranking (increasing)
@@ -1591,7 +1590,7 @@ TotLL = 0D0
 TotLL(1) = SUM(Lind)
 do Round=1,41
   call rchkusr()
-  if(quiet==-1)  call rprint_tbl_update_a(Round, 'parents   ')
+  if(quiet==-1)  call rprint_tbl_update_a(Round,102) ! 'parents   ')
   if (hermaphrodites/=0) then
     call Parentage(BYRank_Selfed)
   else
@@ -1649,7 +1648,7 @@ implicit none
 integer, intent(INOUT) :: MaxRounds, AgeEffect   ! IN
 double precision, intent(INOUT) :: TotLL(42)
 integer :: Round, RX, k, PairID(XP*nInd,2), PairType(XP*nInd) 
-character(len=10), allocatable :: stepname(:)
+! character(len=10), allocatable :: stepname(:)
 
 
 RX = 1  ! no. of initial rounds, pairs-cluster-merge only    
@@ -1666,22 +1665,22 @@ endif
 if (Complx == 0 .and. any(Parent /=0))   call CheckMono()
 call UpdateAllProbs()     
 
-allocate(stepname(12))
-stepname(1) = 'find pairs'
-stepname(2) = 'clustering'
-stepname(3) = 'GP pairs'
-stepname(4) = 'merging'
-stepname(5) = 'P of sibs'
-stepname(6) = 'GP Hsibs'
-stepname(7) = 'GP Fsibs'
-stepname(8) = 'find/check'
-stepname(9) = '(all)'
-stepname(10) = 'initial'
-stepname(11) = 'ped check'
-stepname(12) = 'end'
+! allocate(stepname(12))
+! stepname(1) = 'find pairs'
+! stepname(2) = 'clustering'
+! stepname(3) = 'GP pairs'
+! stepname(4) = 'merging'
+! stepname(5) = 'P of sibs'
+! stepname(6) = 'GP Hsibs'
+! stepname(7) = 'GP Fsibs'
+! stepname(8) = 'find/check'
+! stepname(9) = '(all)'
+! stepname(10) = 'initial'
+! stepname(11) = 'ped check'
+! stepname(12) = 'end'
 
 if (quiet<1) then
-  call rprint_tbl_update_a(0, stepname(10))
+  call rprint_tbl_update_a(0,100)  ! initial
   call rprint_status_tbl_no_dots()
   call rprint_tbl_update_b()
 endif
@@ -1690,7 +1689,7 @@ TotLL = 0D0
 TotLL(1) = SUM(Lind)
 
 if (any(Parent /=0)) then
-  if(quiet==-1)  call rprint_tbl_update_a(0, stepname(11)) 
+  if(quiet==-1)  call rprint_tbl_update_a(0,101)  ! ped check 
   call CheckPedigree(.FALSE.)  ! double check parents, using updated ageprior    
   call UpdateAllProbs()
   if(quiet==-1)  call rprint_tbl_update_b()
@@ -1698,18 +1697,18 @@ endif
 
 do Round=1, MaxRounds
   call rchkusr()
-  if(quiet==0)  call rprint_tbl_update_a(Round, stepname(9))
+  if(quiet==0)  call rprint_tbl_update_a(Round,300)  ! all
   
 !  if(quiet==-1)  call Rprint("--- Round "//RoundChars(Round)//" start ---", (/0/), (/0.0D0/), "NON")
   
   ! == find pairs of potential siblings ==
-  if(quiet==-1)  call rprint_tbl_update_a(Round, stepname(1))
+  if(quiet==-1)  call rprint_tbl_update_a(Round,1)  ! find pairs
   call FindPairs(PairID, PairType)
   if(quiet==-1)  call rprint_tbl_update_b()
   call rchkusr()
   
   ! == cluster pairs into sibships ==
-  if(quiet==-1)  call rprint_tbl_update_a(Round, stepname(2))
+  if(quiet==-1)  call rprint_tbl_update_a(Round,2)
   call Clustering(PairID, PairType)  
   call UpdateAllProbs() 
   if(quiet==-1)  call rprint_tbl_update_b()  
@@ -1717,7 +1716,7 @@ do Round=1, MaxRounds
   
   ! == grandparent - grandoffspring pairs ==
   if (Round > RX+1) then
-    if(quiet==-1)  call rprint_tbl_update_a(Round, stepname(3))
+    if(quiet==-1)  call rprint_tbl_update_a(Round,3)
     call GGpairs()                  
     call UpdateAllProbs()
     if(quiet==-1)  call rprint_tbl_update_b() 
@@ -1725,14 +1724,14 @@ do Round=1, MaxRounds
   endif       
   
   ! == merge sibship clusters ==
-  if(quiet==-1)  call rprint_tbl_update_a(Round, stepname(4))
+  if(quiet==-1)  call rprint_tbl_update_a(Round,4)
   call Merging()
   call UpdateAllProbs()  
   if(quiet==-1)  call rprint_tbl_update_b()   
   call rchkusr()
   
   ! == replace sibship dummy parents by genotyped individuals ==
-  if(quiet==-1)  call rprint_tbl_update_a(Round, stepname(5))
+  if(quiet==-1)  call rprint_tbl_update_a(Round,5)
   call SibParent()   
   call UpdateAllProbs()
   if(quiet==-1)  call rprint_tbl_update_b()   
@@ -1740,14 +1739,14 @@ do Round=1, MaxRounds
   
   ! == sibship grandparents ==
   if (Round > RX .or. Round==MaxRounds) then  
-    if(quiet==-1)  call rprint_tbl_update_a(Round, stepname(6))
+    if(quiet==-1)  call rprint_tbl_update_a(Round,6)
     call SibGrandparents()         
     call UpdateAllProbs() 
     if(quiet==-1)  call rprint_tbl_update_b()   
     call rchkusr()  
     
     if (Round > RX+1) then
-      if(quiet==-1)  call rprint_tbl_update_a(Round, stepname(7))
+      if(quiet==-1)  call rprint_tbl_update_a(Round,7)
       call FsibsGPs()
       call UpdateAllProbs()
       if(quiet==-1)  call rprint_tbl_update_b()   
@@ -1759,7 +1758,7 @@ do Round=1, MaxRounds
   endif   
   
   ! == assign additional parents & double check new assignments ==
-  if(quiet==-1)  call rprint_tbl_update_a(Round, stepname(8))
+  if(quiet==-1)  call rprint_tbl_update_a(Round,8)
   call MoreParent() 
   call UpdateAllProbs()
   if(quiet==-1)  call rprint_tbl_update_b()
@@ -1784,8 +1783,7 @@ end subroutine Sibships
 
 subroutine rprint_tbl_update_a(round, step)
   implicit none
-  integer, intent(IN) :: round
-  character(len=10), intent(IN) :: step
+  integer, intent(IN) :: round, step
   integer :: date_time_values(8)
 
   call date_and_time(VALUES=date_time_values)
@@ -2283,7 +2281,7 @@ i_deciles = deciles(nInd)
 
 do x=1, nInd
   if (MODULO(x,100)==0)  call rchkusr()
-  if (quiet==-1 .and. any(i_deciles==i))  call rprint_status_tbl_dot()
+  if (quiet==-1 .and. any(i_deciles==x))  call rprint_status_tbl_dot()
   
   i = BYRank(x)
   curPar = Parent(i,:)
@@ -6372,7 +6370,7 @@ double precision, intent(OUT) :: LL
 integer :: AA(maxSibSize), PA, nA, GA(2), BB(maxSibSize), nB, PB(2), BBx(maxSibSize, 2), &
   nBx(2), Mates(maxSibSize, 2), GG(2), AncG(2, 2,mxA), AncA(2,mxA), AB(2*maxSibSize), &
   catA(maxSibSize), catG(2), catB(maxSibSize), GGP, GGG(2), doneB(maxSibSize), &
-  Bj, w, l, x, g, y, z, i, r,u,j,e,Ei,m, catX, PAx, DoQuickB
+  Bj, w, l, x, g, y, z, i, r,u,j,e,Ei,m, PAx, DoQuickB
 double precision :: PrL(nSnp), PrG(3,2), PrXYZ(3,3,3), PrPA(3), PrA(3), &
   PrPB(3), PrGA(3), PrAB(3,3,3,2), PrE(3), PrH(3), PrGG(3), PrEW(3,3), PrW(3), PrXY(3,3)
 integer, allocatable, dimension(:) :: UseEE, MateABpar, TypeEE
