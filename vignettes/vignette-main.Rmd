@@ -4,6 +4,10 @@ subtitle: "Reconstruction of multi-generational pedigrees from SNP data"
 author: "Jisca Huisman ( jisca.huisman @ gmail.com )"
 date: "17 May 2024"
 output:
+  bookdown::html_document2:
+    base_format: rmarkdown::html_vignette
+    toc: true
+    toc_depth: 3
   bookdown::pdf_book:
     extra_dependencies:
     - amsmath
@@ -12,10 +16,6 @@ output:
     - subcaption
     keep_tex: true
     keep_md: true
-  bookdown::html_document2:
-    base_format: rmarkdown::html_vignette
-    toc: true
-    toc_depth: 3
   bookdown::gitbook: 
     config:
       toc:

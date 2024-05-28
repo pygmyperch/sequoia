@@ -3,16 +3,16 @@ title: "Sequoia - Age 'Prior'"
 author: "Jisca Huisman"
 date: "15 March 2023"
 output:
-  bookdown::pdf_book:
-    extra_dependencies:
-    - amsmath
-    - amssymb
-    - graphicx
   bookdown::html_document2:
     base_format: rmarkdown::html_vignette
     toc: true
     toc_depth: 3
     split_by: none
+  bookdown::pdf_book:
+    extra_dependencies:
+    - amsmath
+    - amssymb
+    - graphicx
   bookdown::gitbook: 
     config:
       toc:

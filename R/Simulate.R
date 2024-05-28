@@ -465,9 +465,9 @@ MkGenoErrors <- function(SGeno,
     }
 
     if (all(dim(ErrorFM(0.1))==3)) {
-      RealToObs <- laply(El, ErrorFM)
+      RealToObs <- plyr::laply(El, ErrorFM)
     } else if (all(dim(ErrorFM(0.1))==4)) {
-      RealToObs <- laply(El, function(e) shrinkET(ErrorFM(e)))
+      RealToObs <- plyr::laply(El, function(e) shrinkET(ErrorFM(e)))
     } else {
       stop("ErrorFM(E) should return a 4x4 or 3x3 matrix")
     }
