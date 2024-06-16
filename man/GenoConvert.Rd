@@ -165,6 +165,9 @@ GenoM <- GenoConvert(ColonyFile, InFormat = "col",
 # circumvent a 'rows have unequal length' error:
 GenoTmp <- as.matrix(read.table("mydata.txt", header=TRUE, row.names=1))
 GenoM <- GenoConvert(InData=GenoTmp, InFormat="single", IDcol=0)
+
+# can also write to file, e.g. simulated genotypes:
+GenoConvert(Geno_A, InFormat='seq', OutFormat='ped', OutFile = sim_genotypes)
 }
 
 }

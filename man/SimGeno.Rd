@@ -166,6 +166,10 @@ Geno_dups <- MkGenoErrors(Geno_act[Dups_grif$ID1, ], SnpError=Err,
 rownames(Geno_dups) <- Dups_grif$ID2
 Geno_sim <- rbind(Geno_sim, Geno_dups)
 
+\dontrun{
+# write simulated genotypes to a file, e.g. for use by PLINK:
+GenoConvert(Geno_A, InFormat='seq', OutFormat='ped', OutFile = sim_genotypes)
+}
 
 }
 \seealso{

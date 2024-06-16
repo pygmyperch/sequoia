@@ -1,3 +1,13 @@
+# sequoia 2.11.4
+- `GenoConvert` fake .map output file: change chrom 0 (unmapped) to chrom 1, as SNPs on chromosome 0 get excluded by default by e.g. PLINK & GCTA
+- `CalcRped`: drop dummy parents of 'half founders' from output (1 known + 1 unknown parent not supported by pkg kinship2)
+
+# sequoia 2.11.3
+- make assignment of grandparents to singletons a bit more conservative
+
+# sequoia 2.11.2
+- minor fixes to pass CRAN checks
+
 # sequoia 2.11
 - improved assignment rate when some birth years are unknown
 - improved messages, with {cli} markup

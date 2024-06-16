@@ -1,4 +1,8 @@
-sequoia.dll
-sequoia.o
-*.o
-*.mod
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+src/*.o
+src/*.so
+src/*.dll
+src/*.mod

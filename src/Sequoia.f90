@@ -2727,9 +2727,9 @@ endif
 call setParTmp(A, kA, 0, 1) 
 
 TAx = TA
-if (A < 0 .and. SUM(nCP)==1) then
-  if (ns(-A, kA) == 1)  TAx = 2*TA   ! GGpairs sensitive to false pos.
-endif
+! if (A < 0 .and. SUM(nCP)==1) then
+!  if (ns(-A, kA) == 1)  TAx = 2*TA   ! GGpairs sensitive to false pos.
+! endif
 
 do u=1, nCP(1)
   do v=1, nCP(2)
@@ -2887,9 +2887,9 @@ endif
 
 
 ! ~~~~  single parent  ~~~~
-! if (A < 0) then
-  ! if (ns(-A, kA) == 1)   TAx = 3*TA   ! GGpairs sensitive to false pos. 
-! endif   
+if (A < 0) then
+  if (ns(-A, kA) == 1)   TAx = 2*TA   ! GGpairs sensitive to false pos. 
+endif   
 
 SingleCand = .FALSE.
 do m=1,2
