@@ -2,7 +2,7 @@
 % Please edit documentation in R/DuplicateCheck.R
 \name{DuplicateCheck}
 \alias{DuplicateCheck}
-\title{Check Data for Duplicates.}
+\title{Check Data for Duplicates}
 \usage{
 DuplicateCheck(GenoM = NULL, FortPARAM.dup, quiet)
 }
@@ -36,4 +36,3 @@ Check the genotype and life history data for duplicate IDs (not
   in the life history data, as well as for IDs (in genotype data) for which
   no life history data is provided.
 }
-\keyword{internal}

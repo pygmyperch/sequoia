@@ -1,4 +1,4 @@
-#' @title Check Data for Duplicates.
+#' @title Check Data for Duplicates
 #'
 #' @description Check the genotype and life history data for duplicate IDs (not
 #'   permitted) and duplicated genotypes (not advised), and count how many
@@ -23,12 +23,9 @@
 #' @seealso \code{\link{CheckLH}}, which performs the check for duplicated IDs
 #'   in the life history data, as well as for IDs (in genotype data) for which
 #'   no life history data is provided.
-#'
+#' 
 #' @useDynLib sequoia, .registration = TRUE
-# @useDynLib sequoia duplicates
-#'
-#' @keywords internal
-
+#' @export
 DuplicateCheck <- function(GenoM = NULL,
                            FortPARAM.dup,
                            quiet)
